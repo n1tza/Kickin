@@ -29,4 +29,10 @@
 
     <!-- Screen titles -->
     <string name="screen_match_detail">Match %1$d</string>
+
+    <!-- Standings Screen -->
+    <string name="standing_team">Team</string>
+    <string name="standing_played">PL</string>
+    <string name="standing_gd">GD</string>
+    <string name="standing_pts">PTS</string>
 </resources>
