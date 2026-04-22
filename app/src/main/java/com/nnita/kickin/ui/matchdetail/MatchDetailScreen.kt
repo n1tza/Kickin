@@ -64,9 +64,7 @@ fun MatchDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(stringResource(R.string.screen_match_detail, fixtureId))
-                },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
