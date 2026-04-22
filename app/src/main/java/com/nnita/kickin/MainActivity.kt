@@ -3,45 +3,143 @@ package com.nnita.kickin
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.nnita.kickin.ui.home.HomeScreen
+import com.nnita.kickin.ui.home.HomeViewModel
+import com.nnita.kickin.ui.info.InfoScreen
+import com.nnita.kickin.ui.legal.LegalScreen
+import com.nnita.kickin.ui.matchdetail.MatchDetailScreen
+import com.nnita.kickin.ui.settings.SettingsScreen
+import com.nnita.kickin.ui.standings.StandingsScreen
 import com.nnita.kickin.ui.theme.KickinTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             KickinTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                KickinApp()
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+private data class NavItem(
+    val screen: Screen,
+    val labelRes: Int,
+    val icon: @Composable () -> Unit
+)
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    KickinTheme {
-        Greeting("Android")
+fun KickinApp() {
+    val navController = rememberNavController()
+    val navItems = listOf(
+        NavItem(Screen.Home, R.string.nav_home) {
+            Icon(Icons.Default.Home, contentDescription = stringResource(R.string.nav_home))
+        },
+        NavItem(Screen.Standings, R.string.nav_standings) {
+            Icon(Icons.Default.List, contentDescription = stringResource(R.string.nav_standings))
+        },
+        NavItem(Screen.Settings, R.string.nav_settings) {
+            Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings))
+        },
+        NavItem(Screen.Info, R.string.nav_info) {
+            Icon(Icons.Default.Info, contentDescription = stringResource(R.string.nav_info))
+        },
+        NavItem(Screen.Legal, R.string.nav_legal) {
+            Icon(Icons.Default.Shield, contentDescription = stringResource(R.string.nav_legal))
+        }
+    )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    val showBottomBar = navItems.any { item ->
+        currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar {
+                    navItems.forEach { item ->
+                        val selected = currentDestination?.hierarchy?.any {
+                            it.route == item.screen.route
+                        } == true
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                navController.navigate(item.screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = item.icon,
+                            label = { Text(text = stringResource(item.labelRes)) }
+                        )
+                    }
+                }
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Home.route) {
+                val homeViewModel: HomeViewModel = viewModel()
+                val fixtures by homeViewModel.fixtures.collectAsState()
+                HomeScreen(
+                    fixtures = fixtures,
+                    onFixtureClick = { id ->
+                        navController.navigate(Screen.MatchDetail.createRoute(id))
+                    }
+                )
+            }
+            composable(Screen.Standings.route) {
+                StandingsScreen()
+            }
+            composable(Screen.Settings.route) {
+                SettingsScreen()
+            }
+            composable(Screen.Info.route) {
+                InfoScreen()
+            }
+            composable(Screen.Legal.route) {
+                LegalScreen()
+            }
+            composable(Screen.MatchDetail.route) { backStackEntry ->
+                val fixtureId = backStackEntry.arguments
+                    ?.getString("fixtureId")?.toIntOrNull() ?: return@composable
+                MatchDetailScreen(fixtureId = fixtureId)
+            }
+        }
     }
 }

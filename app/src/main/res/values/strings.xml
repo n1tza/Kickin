@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">Kickin</string>
+
+    <!-- Bottom navigation labels -->
+    <string name="nav_home">Home</string>
+    <string name="nav_standings">Standings</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_info">Info</string>
+    <string name="nav_legal">Legal</string>
+
+    <!-- Home screen -->
+    <string name="home_title">Today\'s Matches</string>
+    <string name="home_empty">No matches today</string>
+
+    <!-- Score display -->
+    <string name="score_placeholder">-</string>
+    <string name="score_separator">:</string>
+
+    <!-- Match status labels -->
+    <string name="status_ft">FT</string>
+    <string name="status_ht">HT</string>
+    <string name="status_aet">AET</string>
+    <string name="status_pen">PEN</string>
+    <string name="status_live_minute">%1$s\'</string>
+
+    <!-- Screen titles -->
+    <string name="screen_match_detail">Match %1$d</string>
 </resources>
