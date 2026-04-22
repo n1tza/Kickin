@@ -14,7 +14,8 @@
 
     <!-- Score display -->
     <string name="score_placeholder">-</string>
-    <string name="score_separator">:</string>
+    <string name="score_separator">&#x2013;</string>
+    <string name="score_vs">vs</string>
 
     <!-- Match status labels -->
     <string name="status_ft">FT</string>
