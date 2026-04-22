@@ -30,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nnita.kickin.ui.home.HomeScreen
 import com.nnita.kickin.ui.home.HomeViewModel
+import com.nnita.kickin.ui.home.MatchMode
 import com.nnita.kickin.ui.info.InfoScreen
 import com.nnita.kickin.ui.legal.LegalScreen
 import com.nnita.kickin.ui.matchdetail.MatchDetailScreen
@@ -117,14 +118,20 @@ fun KickinApp() {
                 val homeViewModel: HomeViewModel = viewModel()
                 val leagues by homeViewModel.leagues.collectAsState()
                 val selectedLeague by homeViewModel.selectedLeague.collectAsState()
+                val matchMode by homeViewModel.matchMode.collectAsState()
+                val selectedDate by homeViewModel.selectedDate.collectAsState()
                 val liveFixtures by homeViewModel.liveFixtures.collectAsState()
                 val otherFixtures by homeViewModel.otherFixtures.collectAsState()
                 HomeScreen(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
+                    matchMode = matchMode,
+                    selectedDate = selectedDate,
                     liveFixtures = liveFixtures,
                     otherFixtures = otherFixtures,
                     onLeagueSelected = homeViewModel::selectLeague,
+                    onModeChanged = homeViewModel::selectMode,
+                    onDateSelected = homeViewModel::selectDate,
                     onFixtureClick = { id ->
                         navController.navigate(Screen.MatchDetail.createRoute(id))
                     }

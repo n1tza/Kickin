@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,6 +44,9 @@ import com.nnita.kickin.R
 import com.nnita.kickin.model.Fixture
 import com.nnita.kickin.model.TeamStatistics
 import com.nnita.kickin.ui.components.TeamIcon
+import com.nnita.kickin.ui.preview.previewFixtureLive
+import com.nnita.kickin.ui.preview.previewFixtureNS
+import com.nnita.kickin.ui.theme.KickinTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,10 +64,15 @@ fun MatchDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.nav_home)) },
+                title = {
+                    Text(stringResource(R.string.screen_match_detail, fixtureId))
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.content_desc_back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -84,17 +93,24 @@ fun MatchDetailScreen(
             ) {
                 MatchHeader(fix)
                 Spacer(modifier = Modifier.height(24.dp))
-                
-                if (fix.statistics != null && fix.statistics.size >= 2) {
+
+                if (fix.status == "NS") {
                     Text(
-                        text = "Match Statistics",
+                        text = stringResource(R.string.stats_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                } else if (fix.statistics != null && fix.statistics.size >= 2) {
+                    Text(
+                        text = stringResource(R.string.match_statistics),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Start
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    
                     StatsSection(fix.statistics[0], fix.statistics[1])
                 }
             }
@@ -165,26 +181,25 @@ private fun ScoreDisplay(homeScore: Int, awayScore: Int) {
 @Composable
 private fun StatsSection(homeStats: TeamStatistics, awayStats: TeamStatistics) {
     val stats = listOf(
-        Triple("Shots on Goal", homeStats.shotsOnGoal, awayStats.shotsOnGoal),
-        Triple("Shots off Goal", homeStats.shotsOffGoal, awayStats.shotsOffGoal),
-        Triple("Total Shots", homeStats.totalShots, awayStats.totalShots),
-        Triple("Blocked Shots", homeStats.blockedShots, awayStats.blockedShots),
-        Triple("Corner Kicks", homeStats.cornerKicks, awayStats.cornerKicks),
-        Triple("Fouls", homeStats.fouls, awayStats.fouls),
-        Triple("Yellow Cards", homeStats.yellowCards, awayStats.yellowCards),
-        Triple("Red Cards", homeStats.redCards, awayStats.redCards),
-        Triple("Offsides", homeStats.offsides, awayStats.offsides)
+        Triple(stringResource(R.string.stat_shots_on_goal), homeStats.shotsOnGoal, awayStats.shotsOnGoal),
+        Triple(stringResource(R.string.stat_shots_off_goal), homeStats.shotsOffGoal, awayStats.shotsOffGoal),
+        Triple(stringResource(R.string.stat_total_shots), homeStats.totalShots, awayStats.totalShots),
+        Triple(stringResource(R.string.stat_blocked_shots), homeStats.blockedShots, awayStats.blockedShots),
+        Triple(stringResource(R.string.stat_corners), homeStats.cornerKicks, awayStats.cornerKicks),
+        Triple(stringResource(R.string.stat_fouls), homeStats.fouls, awayStats.fouls),
+        Triple(stringResource(R.string.stat_yellow_cards), homeStats.yellowCards, awayStats.yellowCards),
+        Triple(stringResource(R.string.stat_red_cards), homeStats.redCards, awayStats.redCards),
+        Triple(stringResource(R.string.stat_offsides), homeStats.offsides, awayStats.offsides)
     )
 
     stats.forEach { (label, home, away) ->
         StatRow(label, home, away)
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
     }
-    
-    // Percentage stats
-    StatRow("Ball Possession", homeStats.ballPossession, awayStats.ballPossession)
+
+    StatRow(stringResource(R.string.stat_possession), homeStats.ballPossession, awayStats.ballPossession)
     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-    StatRow("Passes %", homeStats.passesPercentage, awayStats.passesPercentage)
+    StatRow(stringResource(R.string.stat_passes_pct), homeStats.passesPercentage, awayStats.passesPercentage)
 }
 
 @Composable
@@ -192,7 +207,7 @@ private fun StatRow(label: String, homeValue: Any, awayValue: Any) {
     val homeNum = homeValue.toString().replace("%", "").toFloatOrNull() ?: 0f
     val awayNum = awayValue.toString().replace("%", "").toFloatOrNull() ?: 0f
     val total = homeNum + awayNum
-    
+
     val homeProgress = if (total > 0) homeNum / total else 0.5f
     val awayProgress = if (total > 0) awayNum / total else 0.5f
 
@@ -210,17 +225,18 @@ private fun StatRow(label: String, homeValue: Any, awayValue: Any) {
             Text(text = label, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
             Text(text = awayValue.toString(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
         }
-        
+
         Spacer(modifier = Modifier.height(6.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            // Home Progress (Left, reversed)
             AndroidView(
-                modifier = Modifier.weight(1f).height(10.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(10.dp),
                 factory = { context ->
                     RoundCornerProgressBar(context, null).apply {
                         max = 1f
@@ -231,12 +247,13 @@ private fun StatRow(label: String, homeValue: Any, awayValue: Any) {
                 },
                 update = { it.progress = homeProgress }
             )
-            
+
             Spacer(modifier = Modifier.width(4.dp))
-            
-            // Away Progress (Right)
+
             AndroidView(
-                modifier = Modifier.weight(1f).height(10.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(10.dp),
                 factory = { context ->
                     RoundCornerProgressBar(context, null).apply {
                         max = 1f
@@ -245,6 +262,33 @@ private fun StatRow(label: String, homeValue: Any, awayValue: Any) {
                     }
                 },
                 update = { it.progress = awayProgress }
+            )
+        }
+    }
+}
+
+// ── Previews ─────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMatchDetailScreenLive() {
+    KickinTheme {
+        MatchHeader(fixture = previewFixtureLive)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMatchDetailScreenNS() {
+    KickinTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            MatchHeader(fixture = previewFixtureNS)
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(R.string.stats_unavailable),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }

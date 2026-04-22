@@ -1,6 +1,7 @@
 package com.nnita.kickin.ui.home
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,20 +22,36 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -57,8 +74,11 @@ import com.nnita.kickin.ui.preview.previewLiveFixtures
 import com.nnita.kickin.ui.preview.previewOtherFixtures
 import com.nnita.kickin.ui.theme.KickinTheme
 import com.nnita.kickin.ui.theme.LiveRed
+import java.time.Instant
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 private val H_PAD = 16.dp
@@ -68,18 +88,69 @@ private val H_PAD = 16.dp
 fun HomeScreen(
     leagues: List<String>,
     selectedLeague: String,
+    matchMode: MatchMode,
+    selectedDate: LocalDate,
     liveFixtures: List<Fixture>,
     otherFixtures: List<Fixture>,
     onLeagueSelected: (String) -> Unit,
+    onModeChanged: (MatchMode) -> Unit,
+    onDateSelected: (LocalDate) -> Unit,
     onFixtureClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant()
+                .toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    val todayStart = LocalDate.now()
+                        .atStartOfDay(ZoneOffset.UTC)
+                        .toInstant()
+                        .toEpochMilli()
+                    return utcTimeMillis < todayStart
+                }
+            }
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        onDateSelected(
+                            Instant.ofEpochMilli(millis)
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDate()
+                        )
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(R.string.date_picker_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.date_picker_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.home_title),
+                        text = if (matchMode == MatchMode.TODAY)
+                            stringResource(R.string.home_title)
+                        else
+                            stringResource(R.string.past_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (-0.5).sp
@@ -101,6 +172,16 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             item {
+                MatchModeToggle(
+                    mode = matchMode,
+                    onModeChanged = onModeChanged,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = H_PAD, vertical = 8.dp)
+                )
+            }
+
+            item {
                 LeagueFilterRow(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
@@ -108,7 +189,17 @@ fun HomeScreen(
                 )
             }
 
-            if (liveFixtures.isNotEmpty()) {
+            if (matchMode == MatchMode.PAST) {
+                item {
+                    DateSelectorRow(
+                        selectedDate = selectedDate,
+                        onDateSelected = onDateSelected,
+                        onPickDateClick = { showDatePicker = true }
+                    )
+                }
+            }
+
+            if (matchMode == MatchMode.TODAY && liveFixtures.isNotEmpty()) {
                 item {
                     SectionHeader(
                         title = stringResource(R.string.section_live),
@@ -147,7 +238,10 @@ fun HomeScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = stringResource(R.string.home_empty),
+                            text = stringResource(
+                                if (matchMode == MatchMode.PAST) R.string.home_empty_past
+                                else R.string.home_empty
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -164,6 +258,94 @@ fun HomeScreen(
             }
 
             item { Spacer(modifier = Modifier.height(8.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun MatchModeToggle(
+    mode: MatchMode,
+    onModeChanged: (MatchMode) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(50.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(modifier = Modifier.padding(4.dp)) {
+            listOf(MatchMode.TODAY, MatchMode.PAST).forEach { m ->
+                val selected = m == mode
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            RoundedCornerShape(50.dp)
+                        )
+                        .clickable { onModeChanged(m) }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (m == MatchMode.TODAY) R.string.mode_today else R.string.mode_past
+                        ),
+                        color = if (selected) MaterialTheme.colorScheme.onPrimary
+                                else MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DateSelectorRow(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit,
+    onPickDateClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val canGoNext = selectedDate.isBefore(LocalDate.now().minusDays(1))
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = H_PAD, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        IconButton(onClick = { onDateSelected(selectedDate.minusDays(1)) }) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowLeft,
+                contentDescription = stringResource(R.string.content_desc_prev_day)
+            )
+        }
+        TextButton(onClick = onPickDateClick) {
+            Text(
+                text = selectedDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = stringResource(R.string.content_desc_calendar),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+        IconButton(
+            onClick = { onDateSelected(selectedDate.plusDays(1)) },
+            enabled = canGoNext
+        ) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.content_desc_next_day)
+            )
         }
     }
 }
@@ -465,9 +647,13 @@ fun PreviewHomeScreen() {
         HomeScreen(
             leagues = previewLeagues,
             selectedLeague = "All",
+            matchMode = MatchMode.TODAY,
+            selectedDate = LocalDate.now().minusDays(1),
             liveFixtures = previewLiveFixtures,
             otherFixtures = previewOtherFixtures,
             onLeagueSelected = {},
+            onModeChanged = {},
+            onDateSelected = {},
             onFixtureClick = {}
         )
     }
@@ -480,10 +666,85 @@ fun PreviewHomeScreenDark() {
         HomeScreen(
             leagues = previewLeagues,
             selectedLeague = "All",
+            matchMode = MatchMode.TODAY,
+            selectedDate = LocalDate.now().minusDays(1),
             liveFixtures = previewLiveFixtures,
             otherFixtures = previewOtherFixtures,
             onLeagueSelected = {},
+            onModeChanged = {},
+            onDateSelected = {},
             onFixtureClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewHomeScreenPast() {
+    KickinTheme {
+        HomeScreen(
+            leagues = previewLeagues,
+            selectedLeague = "All",
+            matchMode = MatchMode.PAST,
+            selectedDate = LocalDate.now().minusDays(1),
+            liveFixtures = emptyList(),
+            otherFixtures = previewOtherFixtures.filter { it.status != "NS" },
+            onLeagueSelected = {},
+            onModeChanged = {},
+            onDateSelected = {},
+            onFixtureClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMatchModeToggleToday() {
+    KickinTheme {
+        MatchModeToggle(
+            mode = MatchMode.TODAY,
+            onModeChanged = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewMatchModeTogglePast() {
+    KickinTheme {
+        MatchModeToggle(
+            mode = MatchMode.PAST,
+            onModeChanged = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDateSelectorRow() {
+    KickinTheme {
+        DateSelectorRow(
+            selectedDate = LocalDate.now().minusDays(1),
+            onDateSelected = {},
+            onPickDateClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun PreviewDateSelectorRowDark() {
+    KickinTheme {
+        DateSelectorRow(
+            selectedDate = LocalDate.now().minusDays(3),
+            onDateSelected = {},
+            onPickDateClick = {}
         )
     }
 }

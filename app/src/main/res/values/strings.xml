@@ -35,4 +35,35 @@
     <string name="standing_played">PL</string>
     <string name="standing_gd">GD</string>
     <string name="standing_pts">PTS</string>
+
+    <!-- Mode toggle -->
+    <string name="mode_today">Today</string>
+    <string name="mode_past">Past</string>
+    <string name="past_title">Past Matches</string>
+    <string name="home_empty_past">No matches for this date</string>
+
+    <!-- Date selector -->
+    <string name="content_desc_prev_day">Previous day</string>
+    <string name="content_desc_next_day">Next day</string>
+    <string name="content_desc_calendar">Open calendar</string>
+    <string name="date_picker_ok">OK</string>
+    <string name="date_picker_cancel">Cancel</string>
+
+    <!-- Match detail -->
+    <string name="match_statistics">Match Statistics</string>
+    <string name="stats_unavailable">Statistics will be available once the match starts.</string>
+    <string name="content_desc_back">Back</string>
+
+    <!-- Stat labels -->
+    <string name="stat_shots_on_goal">Shots on Goal</string>
+    <string name="stat_shots_off_goal">Shots off Goal</string>
+    <string name="stat_total_shots">Total Shots</string>
+    <string name="stat_blocked_shots">Blocked Shots</string>
+    <string name="stat_corners">Corner Kicks</string>
+    <string name="stat_fouls">Fouls</string>
+    <string name="stat_yellow_cards">Yellow Cards</string>
+    <string name="stat_red_cards">Red Cards</string>
+    <string name="stat_offsides">Offsides</string>
+    <string name="stat_possession">Ball Possession</string>
+    <string name="stat_passes_pct">Passes %</string>
 </resources>
