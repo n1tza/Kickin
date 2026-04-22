@@ -96,6 +96,7 @@ fun HomeScreen(
     onModeChanged: (MatchMode) -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     onFixtureClick: (Int) -> Unit,
+    timeFormat: String = "24h",
     modifier: Modifier = Modifier
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
@@ -252,6 +253,7 @@ fun HomeScreen(
                     MatchListCard(
                         fixture = fixture,
                         onClick = { onFixtureClick(fixture.id) },
+                        use12h = timeFormat == "12h",
                         modifier = Modifier.padding(horizontal = H_PAD, vertical = 4.dp)
                     )
                 }
@@ -529,6 +531,7 @@ private fun LiveTimeBadge(fixture: Fixture) {
 fun MatchListCard(
     fixture: Fixture,
     onClick: () -> Unit,
+    use12h: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -565,6 +568,7 @@ fun MatchListCard(
 
             MatchCenterInfo(
                 fixture = fixture,
+                use12h = use12h,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
 
@@ -589,14 +593,14 @@ fun MatchListCard(
 }
 
 @Composable
-private fun MatchCenterInfo(fixture: Fixture, modifier: Modifier = Modifier) {
+private fun MatchCenterInfo(fixture: Fixture, use12h: Boolean = false, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.width(72.dp)
     ) {
         if (fixture.status == "NS") {
             Text(
-                text = formatKickoffTime(fixture.date),
+                text = formatKickoffTime(fixture.date, use12h),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -628,11 +632,12 @@ private fun MatchCenterInfo(fixture: Fixture, modifier: Modifier = Modifier) {
     }
 }
 
-private fun formatKickoffTime(date: String): String {
+private fun formatKickoffTime(date: String, use12h: Boolean): String {
     return try {
         val odt = OffsetDateTime.parse(date)
         val local = odt.atZoneSameInstant(ZoneId.systemDefault())
-        DateTimeFormatter.ofPattern("HH:mm").format(local)
+        val pattern = if (use12h) "h:mm a" else "HH:mm"
+        DateTimeFormatter.ofPattern(pattern).format(local)
     } catch (e: Exception) {
         date
     }

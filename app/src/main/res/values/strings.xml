@@ -54,6 +54,27 @@
     <string name="stats_unavailable">Statistics will be available once the match starts.</string>
     <string name="content_desc_back">Back</string>
 
+    <!-- Settings -->
+    <string name="settings_league_label">Favorite League</string>
+    <string name="settings_display_mode_label">Display Mode</string>
+    <string name="settings_display_live">Live Only</string>
+    <string name="settings_display_all">All Today</string>
+    <string name="settings_display_league">By League</string>
+    <string name="settings_time_format_label">Time Format</string>
+    <string name="settings_time_12h">12-hour</string>
+    <string name="settings_time_24h">24-hour</string>
+    <string name="settings_data_source_label">Data Source</string>
+    <string name="settings_data_file">From File</string>
+    <string name="settings_data_api">Live API</string>
+    <string name="settings_developer">Developer</string>
+
+    <!-- League names -->
+    <string name="league_premier_league">Premier League</string>
+    <string name="league_la_liga">La Liga</string>
+    <string name="league_serie_a">Serie A</string>
+    <string name="league_bundesliga">Bundesliga</string>
+    <string name="league_ligue_1">Ligue 1</string>
+
     <!-- Stat labels -->
     <string name="stat_shots_on_goal">Shots on Goal</string>
     <string name="stat_shots_off_goal">Shots off Goal</string>

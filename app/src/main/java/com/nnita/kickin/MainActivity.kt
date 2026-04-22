@@ -35,6 +35,7 @@ import com.nnita.kickin.ui.info.InfoScreen
 import com.nnita.kickin.ui.legal.LegalScreen
 import com.nnita.kickin.ui.matchdetail.MatchDetailScreen
 import com.nnita.kickin.ui.settings.SettingsScreen
+import com.nnita.kickin.ui.settings.SettingsViewModel
 import com.nnita.kickin.ui.standings.StandingsScreen
 import com.nnita.kickin.ui.theme.KickinTheme
 
@@ -122,6 +123,7 @@ fun KickinApp() {
                 val selectedDate by homeViewModel.selectedDate.collectAsState()
                 val liveFixtures by homeViewModel.liveFixtures.collectAsState()
                 val otherFixtures by homeViewModel.otherFixtures.collectAsState()
+                val timeFormat by homeViewModel.timeFormat.collectAsState()
                 HomeScreen(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
@@ -134,14 +136,29 @@ fun KickinApp() {
                     onDateSelected = homeViewModel::selectDate,
                     onFixtureClick = { id ->
                         navController.navigate(Screen.MatchDetail.createRoute(id))
-                    }
+                    },
+                    timeFormat = timeFormat
                 )
             }
             composable(Screen.Standings.route) {
                 StandingsScreen()
             }
             composable(Screen.Settings.route) {
-                SettingsScreen()
+                val settingsViewModel: SettingsViewModel = viewModel()
+                val selectedLeagueId by settingsViewModel.selectedLeagueId.collectAsState()
+                val displayMode by settingsViewModel.displayMode.collectAsState()
+                val timeFormat by settingsViewModel.timeFormat.collectAsState()
+                val dataSource by settingsViewModel.dataSource.collectAsState()
+                SettingsScreen(
+                    selectedLeagueId = selectedLeagueId,
+                    displayMode = displayMode,
+                    timeFormat = timeFormat,
+                    dataSource = dataSource,
+                    onLeagueSelected = settingsViewModel::selectLeague,
+                    onDisplayModeSelected = settingsViewModel::selectDisplayMode,
+                    onTimeFormatChanged = settingsViewModel::setTimeFormat,
+                    onDataSourceChanged = settingsViewModel::setDataSource
+                )
             }
             composable(Screen.Info.route) {
                 InfoScreen()
