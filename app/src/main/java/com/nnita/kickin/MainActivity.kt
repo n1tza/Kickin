@@ -145,7 +145,10 @@ fun KickinApp() {
             composable(Screen.MatchDetail.route) { backStackEntry ->
                 val fixtureId = backStackEntry.arguments
                     ?.getString("fixtureId")?.toIntOrNull() ?: return@composable
-                MatchDetailScreen(fixtureId = fixtureId)
+                MatchDetailScreen(
+                    fixtureId = fixtureId,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }

@@ -14,7 +14,23 @@ data class Fixture(
     val leagueName: String,
     val leagueLogo: String,
     val venueName: String,
-    val referee: String?
+    val referee: String?,
+    val statistics: List<TeamStatistics>? = null
+)
+
+data class TeamStatistics(
+    val teamName: String,
+    val shotsOnGoal: Int,
+    val shotsOffGoal: Int,
+    val totalShots: Int,
+    val blockedShots: Int,
+    val ballPossession: String, // e.g. "45%"
+    val cornerKicks: Int,
+    val fouls: Int,
+    val yellowCards: Int,
+    val redCards: Int,
+    val offsides: Int,
+    val passesPercentage: String // e.g. "82%"
 )
 
 fun Fixture.isLive() = status in setOf("1H", "2H", "HT", "ET", "BT", "P", "SUSP", "INT")
