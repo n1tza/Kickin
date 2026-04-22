@@ -1,7 +1,7 @@
 package com.nnita.kickin.ui.home
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nnita.kickin.R
 import com.nnita.kickin.model.Fixture
-import com.nnita.kickin.model.isLive
 import com.nnita.kickin.ui.components.TeamIcon
 import com.nnita.kickin.ui.preview.previewFixtureFT
 import com.nnita.kickin.ui.preview.previewFixtureHT
@@ -181,6 +180,15 @@ private fun LeagueFilterRow(
     ) {
         items(leagues, key = { it }) { league ->
             val label = if (league == "All") stringResource(R.string.filter_all) else league
+            val logoRes = when (league) {
+                "Premier League" -> R.drawable.premierleaguelogo
+                "Serie A" -> R.drawable.seriealogo
+                "La Liga" -> R.drawable.laligalogo
+                "Ligue 1" -> R.drawable.ligue1logo
+                "Bundesliga" -> R.drawable.bundesligalogo
+                else -> null
+            }
+
             FilterChip(
                 selected = league == selectedLeague,
                 onClick = { onLeagueSelected(league) },
@@ -190,6 +198,15 @@ private fun LeagueFilterRow(
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold
                     )
+                },
+                leadingIcon = logoRes?.let {
+                    {
+                        Image(
+                            painter = painterResource(id = it),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
