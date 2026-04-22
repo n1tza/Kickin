@@ -115,9 +115,16 @@ fun KickinApp() {
         ) {
             composable(Screen.Home.route) {
                 val homeViewModel: HomeViewModel = viewModel()
-                val fixtures by homeViewModel.fixtures.collectAsState()
+                val leagues by homeViewModel.leagues.collectAsState()
+                val selectedLeague by homeViewModel.selectedLeague.collectAsState()
+                val liveFixtures by homeViewModel.liveFixtures.collectAsState()
+                val otherFixtures by homeViewModel.otherFixtures.collectAsState()
                 HomeScreen(
-                    fixtures = fixtures,
+                    leagues = leagues,
+                    selectedLeague = selectedLeague,
+                    liveFixtures = liveFixtures,
+                    otherFixtures = otherFixtures,
+                    onLeagueSelected = homeViewModel::selectLeague,
                     onFixtureClick = { id ->
                         navController.navigate(Screen.MatchDetail.createRoute(id))
                     }

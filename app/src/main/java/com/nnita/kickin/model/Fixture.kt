@@ -17,6 +17,8 @@ data class Fixture(
     val referee: String?
 )
 
+fun Fixture.isLive() = status in setOf("1H", "2H", "HT", "ET", "BT", "P", "SUSP", "INT")
+
 fun FixtureResponse.toFixture() = Fixture(
     id = fixture.id,
     date = fixture.date,

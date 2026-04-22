@@ -11,6 +11,9 @@
     <!-- Home screen -->
     <string name="home_title">Today\'s Matches</string>
     <string name="home_empty">No matches today</string>
+    <string name="section_live">Live Matches</string>
+    <string name="section_matches">Matches</string>
+    <string name="filter_all">All</string>
 
     <!-- Score display -->
     <string name="score_placeholder">-</string>
