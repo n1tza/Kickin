@@ -40,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -72,8 +73,11 @@ import com.nnita.kickin.ui.preview.previewFixtureNS
 import com.nnita.kickin.ui.preview.previewLeagues
 import com.nnita.kickin.ui.preview.previewLiveFixtures
 import com.nnita.kickin.ui.preview.previewOtherFixtures
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.nnita.kickin.ui.theme.CharcoalBlack
 import com.nnita.kickin.ui.theme.KickinTheme
 import com.nnita.kickin.ui.theme.LiveRed
+import com.nnita.kickin.ui.theme.White
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -117,29 +121,37 @@ fun HomeScreen(
                 }
             }
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        onDateSelected(
-                            Instant.ofEpochMilli(millis)
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDate()
-                        )
-                    }
-                    showDatePicker = false
-                }) {
-                    Text(stringResource(R.string.date_picker_ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(R.string.date_picker_cancel))
-                }
-            }
+        val darkTheme = isSystemInDarkTheme()
+        MaterialTheme(
+            colorScheme = MaterialTheme.colorScheme.copy(
+                primary = if (darkTheme) MaterialTheme.colorScheme.primary else CharcoalBlack,
+                onPrimary = if (darkTheme) MaterialTheme.colorScheme.onPrimary else White
+            )
         ) {
-            DatePicker(state = datePickerState)
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            onDateSelected(
+                                Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneOffset.UTC)
+                                    .toLocalDate()
+                            )
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text(stringResource(R.string.date_picker_ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text(stringResource(R.string.date_picker_cancel))
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
         }
     }
 
@@ -159,7 +171,8 @@ fun HomeScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    titleContentColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onBackground
                 )
             )
         },
@@ -327,7 +340,13 @@ private fun DateSelectorRow(
                 contentDescription = stringResource(R.string.content_desc_prev_day)
             )
         }
-        TextButton(onClick = onPickDateClick) {
+        TextButton(
+            onClick = onPickDateClick,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.onBackground
+            )
+        ) {
             Text(
                 text = selectedDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
                 style = MaterialTheme.typography.titleSmall,
@@ -429,7 +448,10 @@ fun LiveMatchCard(
             .width(215.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -451,7 +473,7 @@ fun LiveMatchCard(
                 Text(
                     text = fixture.leagueName.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -515,11 +537,11 @@ private fun LiveTimeBadge(fixture: Fixture) {
     }
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primary
+        color = MaterialTheme.colorScheme.onPrimary
     ) {
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)

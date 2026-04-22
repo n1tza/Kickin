@@ -2,18 +2,18 @@ package com.nnita.kickin.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Accent greens (from brand palette)
-val ForestGreen  = Color(0xFF248232)
-val VibrantGreen = Color(0xFF2BA84A)
+// Brand palette
+val NeonGreen    = Color(0xFFC2F400)
+val CharcoalBlack = Color(0xFF171717)
 
 // Live indicator
 val LiveRed = Color(0xFFE5312B)
 
 // Dark mode neutrals
 val Gray900 = Color(0xFF111111)
-val Gray800 = Color(0xFF1C1C1C)
-val Gray700 = Color(0xFF2A2A2A)
-val Gray500 = Color(0xFF757575)
+val Gray800 = Color(0xFF1E1E1E)
+val Gray700 = Color(0xFF252525)
+val Gray500 = Color(0xFF6B6B6B)
 val Gray400 = Color(0xFF9E9E9E)
 
 // Light mode neutrals
@@ -26,6 +26,6 @@ val Gray600 = Color(0xFF6B6B6B)
 val Black = Color(0xFF0F0F0F)
 val White = Color(0xFFFFFFFF)
 
-// Green tint containers (for badges / chips only)
-val GreenContainerLight = Color(0xFFC8EDD2)
-val GreenContainerDark  = Color(0xFF1A4A28)
+// Neon green containers
+val NeonGreenContainerDark  = Color(0xFF1E2800)
+val NeonGreenContainerLight = Color(0xFFEFF7A0)
