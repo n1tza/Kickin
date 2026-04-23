@@ -75,6 +75,14 @@
     <string name="league_bundesliga">Bundesliga</string>
     <string name="league_ligue_1">Ligue 1</string>
 
+    <!-- Info screen -->
+    <string name="info_version">Version</string>
+    <string name="info_build">Build</string>
+    <string name="info_build_date">Build Date</string>
+    <string name="info_package">Package</string>
+    <string name="info_copyright">© 2026 Nicolas Nita. All rights reserved.</string>
+    <string name="info_tagline">Live football scores, wherever you are.</string>
+
     <!-- Stat labels -->
     <string name="stat_shots_on_goal">Shots on Goal</string>
     <string name="stat_shots_off_goal">Shots off Goal</string>
