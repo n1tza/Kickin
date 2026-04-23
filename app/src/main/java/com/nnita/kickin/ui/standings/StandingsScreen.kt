@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nnita.kickin.R
 import com.nnita.kickin.model.Standing
+import com.nnita.kickin.ui.components.PicassoImage
 import com.nnita.kickin.ui.components.TeamIcon
 import com.nnita.kickin.ui.theme.KickinTheme
 import kotlinx.coroutines.delay
@@ -60,6 +63,7 @@ fun StandingsScreen(
 ) {
     val selectedLeague by viewModel.selectedLeague.collectAsState()
     val standings by viewModel.standings.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val leagues = viewModel.leagues
 
     // State to track how many rows should be visible for the staggered animation
@@ -94,41 +98,50 @@ fun StandingsScreen(
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            LeagueFilterRow(
-                leagues = leagues,
-                selectedLeague = selectedLeague,
-                onLeagueSelected = viewModel::selectLeague
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                LeagueFilterRow(
+                    leagues = leagues,
+                    selectedLeague = selectedLeague,
+                    onLeagueSelected = viewModel::selectLeague
+                )
 
-            StandingsHeader()
+                StandingsHeader()
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                itemsIndexed(standings, key = { _, it -> it.teamName }) { index, standing ->
-                    AnimatedVisibility(
-                        visible = index < visibleRowsCount,
-                        enter = slideInHorizontally(
-                            initialOffsetX = { -100 },
-                            animationSpec = tween(durationMillis = 300)
-                        ) + fadeIn(animationSpec = tween(durationMillis = 300))
-                    ) {
-                        Column {
-                            StandingRow(standing = standing)
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                thickness = 0.5.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                            )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    itemsIndexed(standings, key = { _, it -> it.teamName }) { index, standing ->
+                        AnimatedVisibility(
+                            visible = index < visibleRowsCount,
+                            enter = slideInHorizontally(
+                                initialOffsetX = { -100 },
+                                animationSpec = tween(durationMillis = 300)
+                            ) + fadeIn(animationSpec = tween(durationMillis = 300))
+                        ) {
+                            Column {
+                                StandingRow(standing = standing)
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    thickness = 0.5.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                )
+                            }
                         }
                     }
                 }
+            }
+
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(androidx.compose.ui.Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -246,7 +259,7 @@ private fun StandingRow(standing: Standing) {
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-        TeamIcon(teamName = standing.teamName, size = 26.dp)
+        PicassoImage(url = standing.teamLogo, teamName = standing.teamName, size = 26.dp)
         Text(
             text = standing.teamName,
             modifier = Modifier

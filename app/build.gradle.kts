@@ -1,7 +1,13 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+val localProperties = Properties()
+rootProject.file("local.properties").takeIf { it.exists() }
+    ?.inputStream()?.use { localProperties.load(it) }
 
 android {
     namespace = "com.nnita.kickin"
@@ -18,6 +24,10 @@ android {
 
         buildConfigField("String", "BUILD_DATE", "\"2026-04-22\"")
         buildConfigField("String", "APP_PACKAGE", "\"com.nnita.kickin\"")
+        buildConfigField(
+            "String", "FOOTBALL_API_KEY",
+            "\"${localProperties["FOOTBALL_API_KEY"]?.toString() ?: ""}\""
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,6 +66,11 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     
     implementation("com.akexorcist:RoundCornerProgressBar:2.0.3")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.picasso)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
