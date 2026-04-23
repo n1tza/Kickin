@@ -1,5 +1,8 @@
 package com.nnita.kickin.ui.matchdetail
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,7 +81,7 @@ fun MatchDetailScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         }
@@ -94,7 +100,7 @@ fun MatchDetailScreen(
 
                 if (fix.status == "NS") {
                     Text(
-                        text = stringResource(R.string.stats_unavailable),
+                        text = stringResource(R.string.stats_unavailable).uppercase(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -102,9 +108,8 @@ fun MatchDetailScreen(
                     )
                 } else if (fix.statistics != null && fix.statistics.size >= 2) {
                     Text(
-                        text = stringResource(R.string.match_statistics),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        text = stringResource(R.string.match_statistics).uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Start
                     )
@@ -127,9 +132,10 @@ private fun MatchHeader(fixture: Fixture) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = fixture.leagueName,
+                text = fixture.leagueName.uppercase(),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -143,7 +149,7 @@ private fun MatchHeader(fixture: Fixture) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = fixture.status,
+                text = fixture.status.uppercase(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (fixture.status == "FT") Color.Gray else Color.Red
@@ -158,7 +164,7 @@ private fun TeamDisplay(name: String) {
         TeamIcon(teamName = name, size = 64.dp)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = name,
+            text = name.uppercase(),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -206,8 +212,24 @@ private fun StatRow(label: String, homeValue: Any, awayValue: Any) {
     val awayNum = awayValue.toString().replace("%", "").toFloatOrNull() ?: 0f
     val total = homeNum + awayNum
 
-    val homeProgress = if (total > 0) homeNum / total else 0.5f
-    val awayProgress = if (total > 0) awayNum / total else 0.5f
+    val targetHomeProgress = if (total > 0) homeNum / total else 0.5f
+    val targetAwayProgress = if (total > 0) awayNum / total else 0.5f
+
+    var animationStarted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        animationStarted = true
+    }
+
+    val homeProgress by animateFloatAsState(
+        targetValue = if (animationStarted) targetHomeProgress else 0f,
+        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        label = "homeProgress"
+    )
+    val awayProgress by animateFloatAsState(
+        targetValue = if (animationStarted) targetAwayProgress else 0f,
+        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        label = "awayProgress"
+    )
 
     val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
     val secondaryColor = MaterialTheme.colorScheme.secondary.toArgb()

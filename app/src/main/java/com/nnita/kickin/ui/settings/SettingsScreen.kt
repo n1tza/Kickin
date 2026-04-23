@@ -73,7 +73,7 @@ fun SettingsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
@@ -149,7 +149,7 @@ private fun SettingsSectionHeader(text: String, modifier: Modifier = Modifier) {
         text = text,
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.onSurface,
         letterSpacing = 0.8.sp,
         modifier = modifier.padding(top = 20.dp, bottom = 2.dp)
     )
@@ -254,6 +254,7 @@ private fun DisplayModeSelector(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = if (displayMode == value) FontWeight.SemiBold
                                  else FontWeight.Normal
                 )
@@ -283,6 +284,7 @@ private fun SettingsSwitchRow(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium
                 )
                 if (developerTag) {
