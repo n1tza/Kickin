@@ -3,6 +3,11 @@ package com.nnita.kickin
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -166,7 +171,21 @@ fun KickinApp() {
             composable(Screen.Legal.route) {
                 LegalScreen()
             }
-            composable(Screen.MatchDetail.route) { backStackEntry ->
+            composable(
+                route = Screen.MatchDetail.route,
+                enterTransition = {
+                    scaleIn(animationSpec = tween(400), initialScale = 0.9f) + fadeIn(animationSpec = tween(400))
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(400))
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(400))
+                },
+                popExitTransition = {
+                    scaleOut(animationSpec = tween(400), targetScale = 0.9f) + fadeOut(animationSpec = tween(400))
+                }
+            ) { backStackEntry ->
                 val fixtureId = backStackEntry.arguments
                     ?.getString("fixtureId")?.toIntOrNull() ?: return@composable
                 MatchDetailScreen(
