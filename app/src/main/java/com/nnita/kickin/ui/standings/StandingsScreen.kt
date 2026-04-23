@@ -1,19 +1,25 @@
 package com.nnita.kickin.ui.standings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -24,8 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -40,6 +50,7 @@ import com.nnita.kickin.R
 import com.nnita.kickin.model.Standing
 import com.nnita.kickin.ui.components.TeamIcon
 import com.nnita.kickin.ui.theme.KickinTheme
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +61,17 @@ fun StandingsScreen(
     val selectedLeague by viewModel.selectedLeague.collectAsState()
     val standings by viewModel.standings.collectAsState()
     val leagues = viewModel.leagues
+
+    // State to track how many rows should be visible for the staggered animation
+    var visibleRowsCount by remember(standings) { mutableIntStateOf(0) }
+
+    LaunchedEffect(standings) {
+        visibleRowsCount = 0
+        standings.forEachIndexed { index, _ ->
+            delay(50) // Delay between each row appearing
+            visibleRowsCount = index + 1
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -89,13 +111,23 @@ fun StandingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(standings, key = { it.teamName }) { standing ->
-                    StandingRow(standing = standing)
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
+                itemsIndexed(standings, key = { _, it -> it.teamName }) { index, standing ->
+                    AnimatedVisibility(
+                        visible = index < visibleRowsCount,
+                        enter = slideInHorizontally(
+                            initialOffsetX = { -100 },
+                            animationSpec = tween(durationMillis = 300)
+                        ) + fadeIn(animationSpec = tween(durationMillis = 300))
+                    ) {
+                        Column {
+                            StandingRow(standing = standing)
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -112,7 +144,7 @@ private fun LeagueFilterRow(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(leagues, key = { it }) { league ->
+        itemsIndexed(leagues, key = { _, it -> it }) { _, league ->
             val logoRes = when (league) {
                 "Premier League" -> R.drawable.premierleaguelogo
                 "Serie A" -> R.drawable.seriealogo
