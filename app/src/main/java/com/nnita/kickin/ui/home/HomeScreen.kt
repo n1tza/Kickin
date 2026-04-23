@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -40,7 +42,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -55,7 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,10 +73,10 @@ import com.nnita.kickin.ui.preview.previewFixtureNS
 import com.nnita.kickin.ui.preview.previewLeagues
 import com.nnita.kickin.ui.preview.previewLiveFixtures
 import com.nnita.kickin.ui.preview.previewOtherFixtures
-import androidx.compose.foundation.isSystemInDarkTheme
 import com.nnita.kickin.ui.theme.CharcoalBlack
 import com.nnita.kickin.ui.theme.KickinTheme
 import com.nnita.kickin.ui.theme.LiveRed
+import com.nnita.kickin.ui.theme.NeonGreen
 import com.nnita.kickin.ui.theme.White
 import java.time.Instant
 import java.time.LocalDate
@@ -160,10 +160,10 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (matchMode == MatchMode.TODAY)
+                        text = (if (matchMode == MatchMode.TODAY)
                             stringResource(R.string.home_title)
                         else
-                            stringResource(R.string.past_title),
+                            stringResource(R.string.past_title)).uppercase(),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (-0.5).sp
@@ -216,7 +216,7 @@ fun HomeScreen(
             if (matchMode == MatchMode.TODAY && liveFixtures.isNotEmpty()) {
                 item {
                     SectionHeader(
-                        title = stringResource(R.string.section_live),
+                        title = stringResource(R.string.section_live).uppercase(),
                         modifier = Modifier.padding(horizontal = H_PAD, vertical = 12.dp)
                     )
                 }
@@ -238,7 +238,7 @@ fun HomeScreen(
 
             item {
                 SectionHeader(
-                    title = stringResource(R.string.section_matches),
+                    title = stringResource(R.string.section_matches).uppercase(),
                     modifier = Modifier.padding(horizontal = H_PAD, vertical = 12.dp)
                 )
             }
@@ -307,7 +307,7 @@ private fun MatchModeToggle(
                     Text(
                         text = stringResource(
                             if (m == MatchMode.TODAY) R.string.mode_today else R.string.mode_past
-                        ),
+                        ).uppercase(),
                         color = if (selected) MaterialTheme.colorScheme.onPrimary
                                 else MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.labelLarge,
@@ -348,7 +348,7 @@ private fun DateSelectorRow(
             )
         ) {
             Text(
-                text = selectedDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                text = selectedDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy")).uppercase(),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -397,9 +397,9 @@ private fun LeagueFilterRow(
                 onClick = { onLeagueSelected(league) },
                 label = {
                     Text(
-                        text = label,
+                        text = label.uppercase(),
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 leadingIcon = logoRes?.let {
@@ -445,12 +445,12 @@ fun LiveMatchCard(
 ) {
     Card(
         modifier = modifier
-            .width(215.dp)
+            .width(280.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = NeonGreen,
+            contentColor = CharcoalBlack
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -473,7 +473,7 @@ fun LiveMatchCard(
                 Text(
                     text = fixture.leagueName.uppercase(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f),
+                    color = CharcoalBlack.copy(alpha = 0.65f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -484,30 +484,49 @@ fun LiveMatchCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.Center
             ) {
-                TeamColumn(teamName = fixture.homeTeam, iconSize = 36.dp)
-                ScoreDisplay(fixture = fixture)
-                TeamColumn(teamName = fixture.awayTeam, iconSize = 36.dp)
+                val iconSize = 44.dp
+                
+                TeamColumn(
+                    teamName = fixture.homeTeam,
+                    iconSize = iconSize,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .height(iconSize)
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ScoreDisplay(fixture = fixture)
+                }
+
+                TeamColumn(
+                    teamName = fixture.awayTeam,
+                    iconSize = iconSize,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun TeamColumn(teamName: String, iconSize: Dp) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun TeamColumn(teamName: String, iconSize: Dp, modifier: Modifier = Modifier) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         TeamIcon(teamName = teamName, size = iconSize)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = teamName,
+            text = teamName.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(iconSize * 2f)
+            maxLines = 2,
+            minLines = 2,
+            overflow = TextOverflow.Visible
         )
     }
 }
@@ -521,9 +540,8 @@ private fun ScoreDisplay(fixture: Fixture) {
     }
     Text(
         text = scoreText,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.headlineMedium,
         fontWeight = FontWeight.ExtraBold,
-        fontFamily = FontFamily.Monospace,
         textAlign = TextAlign.Center
     )
 }
@@ -537,11 +555,11 @@ private fun LiveTimeBadge(fixture: Fixture) {
     }
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.onPrimary
+        color = CharcoalBlack
     ) {
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.primary,
+            color = NeonGreen,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
@@ -576,9 +594,9 @@ fun MatchListCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = fixture.homeTeam,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    text = fixture.homeTeam.uppercase(),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -602,9 +620,10 @@ fun MatchListCard(
                 TeamIcon(teamName = fixture.awayTeam, size = 26.dp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = fixture.awayTeam,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    text = fixture.awayTeam.uppercase(),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -622,8 +641,8 @@ private fun MatchCenterInfo(fixture: Fixture, use12h: Boolean = false, modifier:
     ) {
         if (fixture.status == "NS") {
             Text(
-                text = formatKickoffTime(fixture.date, use12h),
-                style = MaterialTheme.typography.labelLarge,
+                text = formatKickoffTime(fixture.date, use12h).uppercase(),
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -633,9 +652,8 @@ private fun MatchCenterInfo(fixture: Fixture, use12h: Boolean = false, modifier:
                     "${fixture.awayScore ?: stringResource(R.string.score_placeholder)}"
             Text(
                 text = scoreText,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                fontFamily = FontFamily.Monospace,
                 color = MaterialTheme.colorScheme.onSurface
             )
             val statusLabel = when (fixture.status) {
@@ -645,7 +663,7 @@ private fun MatchCenterInfo(fixture: Fixture, use12h: Boolean = false, modifier:
                 else -> fixture.status
             }
             Text(
-                text = statusLabel,
+                text = statusLabel.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
