@@ -3,14 +3,18 @@ package com.nnita.kickin.ui.home
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nnita.kickin.model.Fixture
 import com.nnita.kickin.model.FixtureResponse
+import com.nnita.kickin.model.LeagueIds
 import com.nnita.kickin.model.isLive
 import com.nnita.kickin.model.toFixture
+import com.nnita.kickin.network.RetrofitClient
+import com.nnita.kickin.ui.settings.KEY_DATA_SOURCE
 import com.nnita.kickin.ui.settings.KEY_DISPLAY_MODE
 import com.nnita.kickin.ui.settings.KEY_LEAGUE
 import com.nnita.kickin.ui.settings.KEY_TIME_FORMAT
@@ -25,9 +29,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 enum class MatchMode { TODAY, PAST }
+
+private val supportedLeagueIds = setOf(
+    LeagueIds.PREMIER_LEAGUE,
+    LeagueIds.LA_LIGA,
+    LeagueIds.SERIE_A,
+    LeagueIds.BUNDESLIGA,
+    LeagueIds.LIGUE_1
+)
 
 private val leagueIdToName = mapOf(
     "39" to "Premier League",
@@ -43,6 +57,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         application.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
 
     private val _allFixtures = MutableStateFlow<List<Fixture>>(emptyList())
+    private val _isLoading = MutableStateFlow(false)
+    private val _error = MutableStateFlow<String?>(null)
+
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    val error: StateFlow<String?> = _error.asStateFlow()
 
     private val favName: String
         get() = leagueIdToName[prefs.getString(KEY_LEAGUE, "39")] ?: "All"
@@ -102,6 +121,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             KEY_TIME_FORMAT -> {
                 _timeFormat.value = prefs.getString(KEY_TIME_FORMAT, "24h") ?: "24h"
             }
+            KEY_DATA_SOURCE -> loadFixtures()
         }
     }
 
@@ -115,9 +135,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun selectMode(mode: MatchMode) {
         _matchMode.value = mode
         _selectedLeague.value = "All"
+        loadFixtures()
     }
 
-    fun selectDate(date: LocalDate) { _selectedDate.value = date }
+    fun selectDate(date: LocalDate) {
+        _selectedDate.value = date
+        loadFixtures()
+    }
 
     override fun onCleared() {
         prefs.unregisterOnSharedPreferenceChangeListener(prefsListener)
@@ -125,14 +149,56 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun loadFixtures() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val json = getApplication<Application>().assets
-                .open("sample_fixtures.json")
-                .bufferedReader()
-                .use { it.readText() }
-            val type = object : TypeToken<List<FixtureResponse>>() {}.type
-            val responses: List<FixtureResponse> = Gson().fromJson(json, type)
-            _allFixtures.value = responses.map { it.toFixture() }
+        val source = prefs.getString(KEY_DATA_SOURCE, "file") ?: "file"
+        val date = if (_matchMode.value == MatchMode.TODAY) LocalDate.now() else _selectedDate.value
+        if (source == "api") {
+            loadFixturesFromApi(date)
+        } else {
+            loadFixturesFromFile()
+        }
+    }
+
+    private fun loadFixturesFromApi(date: LocalDate) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                Log.d("HOME_API", "Fetching fixtures for date: $dateStr")
+                val fixtures = withContext(Dispatchers.IO) {
+                    RetrofitClient.instance.getFixturesByDate(dateStr)
+                        .response
+                        .map { it.toFixture() }
+                        .filter { it.leagueId in supportedLeagueIds }
+                }
+                Log.d("HOME_API", "Loaded ${fixtures.size} fixtures from API")
+                _allFixtures.value = fixtures
+            } catch (e: Exception) {
+                Log.e("HOME_API", "API call failed: ${e.javaClass.simpleName}: ${e.message}", e)
+                _error.value = e.message ?: e.javaClass.simpleName
+                loadFixturesFromFile()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun loadFixturesFromFile() {
+        viewModelScope.launch {
+            try {
+                val fixtures = withContext(Dispatchers.IO) {
+                    val json = getApplication<Application>().assets
+                        .open("sample_fixtures.json")
+                        .bufferedReader()
+                        .use { it.readText() }
+                    val type = object : TypeToken<List<FixtureResponse>>() {}.type
+                    val responses: List<FixtureResponse> = Gson().fromJson(json, type)
+                    responses.map { it.toFixture() }
+                }
+                _allFixtures.value = fixtures
+            } catch (e: Exception) {
+                _allFixtures.value = emptyList()
+            }
         }
     }
 }

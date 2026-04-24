@@ -11,9 +11,10 @@ data class Fixture(
     val awayScore: Int?,
     val status: String,
     val elapsed: Int?,
+    val leagueId: Int,
     val leagueName: String,
     val leagueLogo: String,
-    val venueName: String,
+    val venueName: String?,
     val referee: String?,
     val statistics: List<TeamStatistics>? = null
 )
@@ -46,8 +47,9 @@ fun FixtureResponse.toFixture() = Fixture(
     awayScore = goals.away,
     status = fixture.status.short,
     elapsed = fixture.status.elapsed,
+    leagueId = league.id,
     leagueName = league.name,
     leagueLogo = league.logo,
-    venueName = fixture.venue.name,
+    venueName = fixture.venue?.name,
     referee = fixture.referee
 )

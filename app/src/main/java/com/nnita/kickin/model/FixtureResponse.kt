@@ -11,7 +11,7 @@ data class FixtureInfo(
     val id: Int,
     val date: String,
     val status: StatusInfo,
-    val venue: VenueInfo,
+    val venue: VenueInfo?,
     val referee: String?
 )
 
@@ -22,8 +22,8 @@ data class StatusInfo(
 )
 
 data class VenueInfo(
-    val name: String,
-    val city: String
+    val name: String?,
+    val city: String?
 )
 
 data class LeagueInfo(

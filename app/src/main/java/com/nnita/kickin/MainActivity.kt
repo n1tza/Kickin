@@ -129,6 +129,8 @@ fun KickinApp() {
                 val liveFixtures by homeViewModel.liveFixtures.collectAsState()
                 val otherFixtures by homeViewModel.otherFixtures.collectAsState()
                 val timeFormat by homeViewModel.timeFormat.collectAsState()
+                val isLoading by homeViewModel.isLoading.collectAsState()
+                val apiError by homeViewModel.error.collectAsState()
                 HomeScreen(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
@@ -142,7 +144,9 @@ fun KickinApp() {
                     onFixtureClick = { id ->
                         navController.navigate(Screen.MatchDetail.createRoute(id))
                     },
-                    timeFormat = timeFormat
+                    timeFormat = timeFormat,
+                    isLoading = isLoading,
+                    apiError = apiError
                 )
             }
             composable(Screen.Standings.route) {

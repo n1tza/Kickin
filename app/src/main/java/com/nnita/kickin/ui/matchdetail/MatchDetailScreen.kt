@@ -4,6 +4,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -49,7 +51,7 @@ import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
 import com.nnita.kickin.R
 import com.nnita.kickin.model.Fixture
 import com.nnita.kickin.model.TeamStatistics
-import com.nnita.kickin.ui.components.TeamIcon
+import com.nnita.kickin.ui.components.PicassoImage
 import com.nnita.kickin.ui.preview.previewFixtureLive
 import com.nnita.kickin.ui.preview.previewFixtureNS
 import com.nnita.kickin.ui.theme.KickinTheme
@@ -62,6 +64,7 @@ fun MatchDetailScreen(
     viewModel: MatchDetailViewModel = viewModel()
 ) {
     val fixture by viewModel.fixture.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(fixtureId) {
         viewModel.loadFixture(fixtureId)
@@ -86,11 +89,11 @@ fun MatchDetailScreen(
             )
         }
     ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         fixture?.let { fix ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -118,6 +121,10 @@ fun MatchDetailScreen(
                 }
             }
         }
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+        } // Box
     }
 }
 
@@ -143,9 +150,9 @@ private fun MatchHeader(fixture: Fixture) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TeamDisplay(name = fixture.homeTeam)
+                TeamDisplay(name = fixture.homeTeam, logoUrl = fixture.homeTeamLogo)
                 ScoreDisplay(homeScore = fixture.homeScore ?: 0, awayScore = fixture.awayScore ?: 0)
-                TeamDisplay(name = fixture.awayTeam)
+                TeamDisplay(name = fixture.awayTeam, logoUrl = fixture.awayTeamLogo)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
@@ -159,9 +166,9 @@ private fun MatchHeader(fixture: Fixture) {
 }
 
 @Composable
-private fun TeamDisplay(name: String) {
+private fun TeamDisplay(name: String, logoUrl: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(100.dp)) {
-        TeamIcon(teamName = name, size = 64.dp)
+        PicassoImage(url = logoUrl, teamName = name, size = 64.dp)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = name.uppercase(),

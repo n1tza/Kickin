@@ -1,6 +1,8 @@
 package com.nnita.kickin.ui.matchdetail
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
@@ -9,31 +11,90 @@ import com.nnita.kickin.model.Fixture
 import com.nnita.kickin.model.FixtureResponse
 import com.nnita.kickin.model.TeamStatistics
 import com.nnita.kickin.model.toFixture
+import com.nnita.kickin.model.toTeamStatistics
+import com.nnita.kickin.network.RetrofitClient
+import com.nnita.kickin.ui.settings.KEY_DATA_SOURCE
+import com.nnita.kickin.ui.settings.PREF_FILE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MatchDetailViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val prefs = application.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
 
     private val _fixture = MutableStateFlow<Fixture?>(null)
     val fixture: StateFlow<Fixture?> = _fixture.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     fun loadFixture(fixtureId: Int) {
+        val source = prefs.getString(KEY_DATA_SOURCE, "file") ?: "file"
+        if (source == "api") {
+            loadFromApi(fixtureId)
+        } else {
+            loadFromFile(fixtureId)
+        }
+    }
+
+    private fun loadFromApi(fixtureId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val (base, stats) = withContext(Dispatchers.IO) {
+                    val fixture = RetrofitClient.instance.getFixtureById(fixtureId)
+                        .response
+                        .firstOrNull()
+                        ?.toFixture()
+                    val statistics = if (fixture != null && fixture.status != "NS") {
+                        try {
+                            RetrofitClient.instance.getMatchStatistics(fixtureId)
+                                .response
+                                .map { it.toTeamStatistics() }
+                                .takeIf { it.size >= 2 }
+                        } catch (e: Exception) {
+                            Log.w("DETAIL_API", "Stats fetch failed, using mock: ${e.message}")
+                            null
+                        }
+                    } else null
+                    Pair(fixture, statistics)
+                }
+                _fixture.value = base?.let {
+                    if (it.status != "NS") {
+                        it.copy(statistics = stats ?: mockStats(it.homeTeam, it.awayTeam))
+                    } else it
+                }
+            } catch (e: Exception) {
+                Log.e("DETAIL_API", "Failed to load fixture $fixtureId: ${e.message}", e)
+                loadFromFile(fixtureId)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun loadFromFile(fixtureId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val json = getApplication<Application>().assets
-                .open("sample_fixtures.json")
-                .bufferedReader()
-                .use { it.readText() }
-            val type = object : TypeToken<List<FixtureResponse>>() {}.type
-            val responses: List<FixtureResponse> = Gson().fromJson(json, type)
-            val base = responses.map { it.toFixture() }.find { it.id == fixtureId }
-                ?: return@launch
-            _fixture.value = if (base.status != "NS") {
-                base.copy(statistics = mockStats(base.homeTeam, base.awayTeam))
-            } else {
-                base
+            try {
+                val json = getApplication<Application>().assets
+                    .open("sample_fixtures.json")
+                    .bufferedReader()
+                    .use { it.readText() }
+                val type = object : TypeToken<List<FixtureResponse>>() {}.type
+                val responses: List<FixtureResponse> = Gson().fromJson(json, type)
+                val base = responses.map { it.toFixture() }.find { it.id == fixtureId }
+                    ?: return@launch
+                _fixture.value = if (base.status != "NS") {
+                    base.copy(statistics = mockStats(base.homeTeam, base.awayTeam))
+                } else {
+                    base
+                }
+            } catch (e: Exception) {
+                Log.e("DETAIL_FILE", "Failed to load fixture from file: ${e.message}")
             }
         }
     }

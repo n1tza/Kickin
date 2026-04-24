@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -65,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nnita.kickin.R
 import com.nnita.kickin.model.Fixture
+import com.nnita.kickin.ui.components.PicassoImage
 import com.nnita.kickin.ui.components.TeamIcon
 import com.nnita.kickin.ui.preview.previewFixtureFT
 import com.nnita.kickin.ui.preview.previewFixtureHT
@@ -101,6 +103,8 @@ fun HomeScreen(
     onDateSelected: (LocalDate) -> Unit,
     onFixtureClick: (Int) -> Unit,
     timeFormat: String = "24h",
+    isLoading: Boolean = false,
+    apiError: String? = null,
     modifier: Modifier = Modifier
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
@@ -179,6 +183,7 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier
     ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -274,6 +279,31 @@ fun HomeScreen(
 
             item { Spacer(modifier = Modifier.height(8.dp)) }
         }
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        if (apiError != null) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.errorContainer
+            ) {
+                Text(
+                    text = "API Error: $apiError",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
+        } // Box
     }
 }
 
@@ -488,9 +518,10 @@ fun LiveMatchCard(
                 horizontalArrangement = Arrangement.Center
             ) {
                 val iconSize = 44.dp
-                
+
                 TeamColumn(
                     teamName = fixture.homeTeam,
+                    teamLogo = fixture.homeTeamLogo,
                     iconSize = iconSize,
                     modifier = Modifier.weight(1f)
                 )
@@ -506,6 +537,7 @@ fun LiveMatchCard(
 
                 TeamColumn(
                     teamName = fixture.awayTeam,
+                    teamLogo = fixture.awayTeamLogo,
                     iconSize = iconSize,
                     modifier = Modifier.weight(1f)
                 )
@@ -515,9 +547,9 @@ fun LiveMatchCard(
 }
 
 @Composable
-private fun TeamColumn(teamName: String, iconSize: Dp, modifier: Modifier = Modifier) {
+private fun TeamColumn(teamName: String, teamLogo: String, iconSize: Dp, modifier: Modifier = Modifier) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
-        TeamIcon(teamName = teamName, size = iconSize)
+        PicassoImage(url = teamLogo, teamName = teamName, size = iconSize)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = teamName.uppercase(),
@@ -603,7 +635,7 @@ fun MatchListCard(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                TeamIcon(teamName = fixture.homeTeam, size = 26.dp)
+                PicassoImage(url = fixture.homeTeamLogo, teamName = fixture.homeTeam, size = 26.dp)
             }
 
             MatchCenterInfo(
@@ -617,7 +649,7 @@ fun MatchListCard(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TeamIcon(teamName = fixture.awayTeam, size = 26.dp)
+                PicassoImage(url = fixture.awayTeamLogo, teamName = fixture.awayTeam, size = 26.dp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = fixture.awayTeam.uppercase(),
