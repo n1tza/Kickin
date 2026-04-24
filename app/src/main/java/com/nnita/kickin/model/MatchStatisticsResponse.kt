@@ -10,7 +10,7 @@ data class MatchStatisticsResponse(
 data class StatTeam(
     val id: Int,
     val name: String,
-    val logo: String
+    val logo: String?
 )
 
 data class StatEntry(

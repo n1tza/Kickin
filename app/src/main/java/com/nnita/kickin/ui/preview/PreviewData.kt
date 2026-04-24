@@ -16,6 +16,7 @@ val previewFixtureFT = Fixture(
     leagueId = 39,
     leagueName = "Premier League",
     leagueLogo = "",
+    leagueCountry = "England",
     venueName = "Anfield",
     referee = "Michael Oliver"
 )
@@ -34,6 +35,7 @@ val previewFixtureLive = Fixture(
     leagueId = 39,
     leagueName = "Premier League",
     leagueLogo = "",
+    leagueCountry = "England",
     venueName = "Etihad Stadium",
     referee = "Anthony Taylor"
 )
@@ -52,6 +54,7 @@ val previewFixtureHT = Fixture(
     leagueId = 135,
     leagueName = "Serie A",
     leagueLogo = "",
+    leagueCountry = "Italy",
     venueName = "Gewiss Stadium",
     referee = "Daniele Orsato"
 )
@@ -70,6 +73,7 @@ val previewFixtureNS = Fixture(
     leagueId = 140,
     leagueName = "La Liga",
     leagueLogo = "",
+    leagueCountry = "Spain",
     venueName = "Santiago Bernabéu",
     referee = "Carlos del Cerro Grande"
 )
@@ -88,6 +92,7 @@ val previewFixtureNS2 = Fixture(
     leagueId = 61,
     leagueName = "Ligue 1",
     leagueLogo = "",
+    leagueCountry = "France",
     venueName = "Parc des Princes",
     referee = "Clément Turpin"
 )

@@ -14,6 +14,7 @@ data class Fixture(
     val leagueId: Int,
     val leagueName: String,
     val leagueLogo: String,
+    val leagueCountry: String,
     val venueName: String?,
     val referee: String?,
     val statistics: List<TeamStatistics>? = null
@@ -41,15 +42,16 @@ fun FixtureResponse.toFixture() = Fixture(
     date = fixture.date,
     homeTeam = teams.home.name,
     awayTeam = teams.away.name,
-    homeTeamLogo = teams.home.logo,
-    awayTeamLogo = teams.away.logo,
+    homeTeamLogo = teams.home.logo ?: "",
+    awayTeamLogo = teams.away.logo ?: "",
     homeScore = goals.home,
     awayScore = goals.away,
     status = fixture.status.short,
     elapsed = fixture.status.elapsed,
     leagueId = league.id,
     leagueName = league.name,
-    leagueLogo = league.logo,
+    leagueLogo = league.logo ?: "",
+    leagueCountry = league.country ?: "",
     venueName = fixture.venue?.name,
     referee = fixture.referee
 )

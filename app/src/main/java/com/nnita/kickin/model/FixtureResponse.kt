@@ -29,8 +29,8 @@ data class VenueInfo(
 data class LeagueInfo(
     val id: Int,
     val name: String,
-    val logo: String,
-    val country: String
+    val logo: String?,
+    val country: String?
 )
 
 data class TeamsInfo(
@@ -41,7 +41,7 @@ data class TeamsInfo(
 data class TeamInfo(
     val id: Int,
     val name: String,
-    val logo: String,
+    val logo: String?,
     val winner: Boolean?
 )
 

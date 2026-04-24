@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken
 import com.nnita.kickin.model.Fixture
 import com.nnita.kickin.model.FixtureResponse
 import com.nnita.kickin.model.LeagueIds
+import com.nnita.kickin.model.LeagueSummary
 import com.nnita.kickin.model.isLive
 import com.nnita.kickin.model.toFixture
 import com.nnita.kickin.network.RetrofitClient
@@ -35,12 +36,16 @@ import java.time.format.DateTimeFormatter
 
 enum class MatchMode { TODAY, PAST }
 
-private val supportedLeagueIds = setOf(
+private val mainLeagueIds = setOf(
     LeagueIds.PREMIER_LEAGUE,
     LeagueIds.LA_LIGA,
     LeagueIds.SERIE_A,
     LeagueIds.BUNDESLIGA,
     LeagueIds.LIGUE_1
+)
+
+private val mainLeagueNames = listOf(
+    "Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"
 )
 
 private val leagueIdToName = mapOf(
@@ -50,6 +55,20 @@ private val leagueIdToName = mapOf(
     "78" to "Bundesliga",
     "61" to "Ligue 1"
 )
+
+private val mainLeagueNameToId = mapOf(
+    "Premier League" to LeagueIds.PREMIER_LEAGUE,
+    "La Liga" to LeagueIds.LA_LIGA,
+    "Serie A" to LeagueIds.SERIE_A,
+    "Bundesliga" to LeagueIds.BUNDESLIGA,
+    "Ligue 1" to LeagueIds.LIGUE_1
+)
+
+private fun Fixture.matchesLeague(league: String): Boolean {
+    if (league == "All") return true
+    val id = mainLeagueNameToId[league]
+    return if (id != null) leagueId == id else leagueName == league
+}
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -78,9 +97,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
     val timeFormat: StateFlow<String> = _timeFormat.asStateFlow()
 
-    val leagues: StateFlow<List<String>> = _allFixtures
-        .map { fixtures -> listOf("All") + fixtures.map { it.leagueName }.distinct() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), listOf("All"))
+    // Fixed chip list — always the same 5 leagues regardless of what's loaded
+    val leagues: StateFlow<List<String>> = MutableStateFlow(listOf("All") + mainLeagueNames)
 
     private val effectiveLeague: Flow<String> =
         combine(_selectedLeague, _displayMode, _favLeagueName) { chip, dm, fav ->
@@ -92,7 +110,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             if (mode == MatchMode.PAST) emptyList()
             else fixtures
                 .filter { it.isLive() }
-                .filter { league == "All" || it.leagueName == league }
+                .filter { it.matchesLeague(league) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val otherFixtures: StateFlow<List<Fixture>> =
@@ -103,8 +121,38 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 fixtures.filter { !it.isLive() }
             }
-            base.filter { league == "All" || it.leagueName == league }
+            base.filter { it.matchesLeague(league) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // Grouped view used when "All" is selected — main leagues first (by ID), then others alphabetically
+    private val mainLeagueIdOrder = listOf(
+        LeagueIds.PREMIER_LEAGUE, LeagueIds.LA_LIGA, LeagueIds.SERIE_A,
+        LeagueIds.BUNDESLIGA, LeagueIds.LIGUE_1
+    )
+
+    val groupedOtherFixtures: StateFlow<List<Pair<String, List<Fixture>>>> =
+        combine(otherFixtures, effectiveLeague) { fixtures, league ->
+            if (league != "All") return@combine emptyList()
+            val grouped = fixtures.groupBy { it.leagueId }
+            mainLeagueIdOrder.mapNotNull { id ->
+                grouped[id]?.let { list -> list.first().leagueName to list }
+            } +
+                grouped.entries
+                    .filter { it.key !in mainLeagueIds }
+                    .map { it.value.first().leagueName to it.value }
+                    .sortedBy { it.first }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // Leagues not in the main 5 that have fixtures — used for the "More..." bottom sheet
+    val otherLeagues: StateFlow<List<LeagueSummary>> = _allFixtures
+        .map { fixtures ->
+            fixtures
+                .filter { it.leagueId !in mainLeagueIds }
+                .distinctBy { it.leagueId }
+                .map { LeagueSummary(it.leagueId, it.leagueName, it.leagueLogo, it.leagueCountry) }
+                .sortedBy { it.name }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
@@ -169,7 +217,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     RetrofitClient.instance.getFixturesByDate(dateStr)
                         .response
                         .map { it.toFixture() }
-                        .filter { it.leagueId in supportedLeagueIds }
                 }
                 Log.d("HOME_API", "Loaded ${fixtures.size} fixtures from API")
                 _allFixtures.value = fixtures

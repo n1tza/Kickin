@@ -95,4 +95,8 @@
     <string name="stat_offsides">Offsides</string>
     <string name="stat_possession">Ball Possession</string>
     <string name="stat_passes_pct">Passes %</string>
+    <string name="filter_more">More…</string>
+    <string name="more_leagues_title">More Leagues</string>
+    <string name="search_leagues_hint">Search leagues or countries</string>
+    <string name="no_leagues_found">No leagues found</string>
 </resources>

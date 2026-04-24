@@ -23,10 +23,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,9 +38,12 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
@@ -47,10 +52,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -66,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nnita.kickin.R
 import com.nnita.kickin.model.Fixture
+import com.nnita.kickin.model.LeagueSummary
 import com.nnita.kickin.ui.components.PicassoImage
 import com.nnita.kickin.ui.components.TeamIcon
 import com.nnita.kickin.ui.preview.previewFixtureFT
@@ -80,6 +89,7 @@ import com.nnita.kickin.ui.theme.KickinTheme
 import com.nnita.kickin.ui.theme.LiveRed
 import com.nnita.kickin.ui.theme.NeonGreen
 import com.nnita.kickin.ui.theme.White
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -102,12 +112,17 @@ fun HomeScreen(
     onModeChanged: (MatchMode) -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     onFixtureClick: (Int) -> Unit,
+    groupedOtherFixtures: List<Pair<String, List<Fixture>>> = emptyList(),
+    otherLeagues: List<LeagueSummary> = emptyList(),
     timeFormat: String = "24h",
     isLoading: Boolean = false,
     apiError: String? = null,
     modifier: Modifier = Modifier
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
+    var showMoreSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
 
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -159,6 +174,20 @@ fun HomeScreen(
         }
     }
 
+    if (showMoreSheet) {
+        MoreLeaguesBottomSheet(
+            leagues = otherLeagues,
+            sheetState = sheetState,
+            onLeagueSelected = { league ->
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    showMoreSheet = false
+                    onLeagueSelected(league)
+                }
+            },
+            onDismiss = { showMoreSheet = false }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -204,7 +233,8 @@ fun HomeScreen(
                 LeagueFilterRow(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
-                    onLeagueSelected = onLeagueSelected
+                    onLeagueSelected = onLeagueSelected,
+                    onMoreClick = { showMoreSheet = true }
                 )
             }
 
@@ -241,14 +271,38 @@ fun HomeScreen(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
             }
 
-            item {
-                SectionHeader(
-                    title = stringResource(R.string.section_matches).uppercase(),
-                    modifier = Modifier.padding(horizontal = H_PAD, vertical = 12.dp)
-                )
+            val useGrouped = selectedLeague == "All" && groupedOtherFixtures.isNotEmpty()
+
+            if (!useGrouped) {
+                item {
+                    SectionHeader(
+                        title = stringResource(R.string.section_matches).uppercase(),
+                        modifier = Modifier.padding(horizontal = H_PAD, vertical = 12.dp)
+                    )
+                }
             }
 
-            if (otherFixtures.isEmpty()) {
+            if (useGrouped) {
+                groupedOtherFixtures.forEach { (leagueName, fixtures) ->
+                    val logo = fixtures.firstOrNull()?.leagueLogo ?: ""
+                    val leagueId = fixtures.firstOrNull()?.leagueId ?: leagueName.hashCode()
+                    item(key = "header_$leagueId") {
+                        LeagueSectionHeader(
+                            leagueName = leagueName,
+                            leagueLogo = logo,
+                            modifier = Modifier.padding(horizontal = H_PAD).padding(top = 16.dp, bottom = 4.dp)
+                        )
+                    }
+                    items(fixtures, key = { it.id }) { fixture ->
+                        MatchListCard(
+                            fixture = fixture,
+                            onClick = { onFixtureClick(fixture.id) },
+                            use12h = timeFormat == "12h",
+                            modifier = Modifier.padding(horizontal = H_PAD, vertical = 4.dp)
+                        )
+                    }
+                }
+            } else if (otherFixtures.isEmpty()) {
                 item {
                     Box(
                         modifier = Modifier
@@ -405,8 +459,11 @@ private fun DateSelectorRow(
 private fun LeagueFilterRow(
     leagues: List<String>,
     selectedLeague: String,
-    onLeagueSelected: (String) -> Unit
+    onLeagueSelected: (String) -> Unit,
+    onMoreClick: () -> Unit
 ) {
+    val isOtherSelected = selectedLeague !in leagues && selectedLeague != "All"
+
     LazyRow(
         contentPadding = PaddingValues(horizontal = H_PAD, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -421,7 +478,6 @@ private fun LeagueFilterRow(
                 "Bundesliga" -> R.drawable.bundesligalogo
                 else -> null
             }
-
             FilterChip(
                 selected = league == selectedLeague,
                 onClick = { onLeagueSelected(league) },
@@ -448,6 +504,32 @@ private fun LeagueFilterRow(
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = league == selectedLeague,
+                    borderColor = MaterialTheme.colorScheme.outline,
+                    selectedBorderColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        }
+
+        // "More..." chip — selected when an other-league is active
+        item(key = "more") {
+            FilterChip(
+                selected = isOtherSelected,
+                onClick = onMoreClick,
+                label = {
+                    Text(
+                        text = if (isOtherSelected) selectedLeague.uppercase()
+                               else stringResource(R.string.filter_more).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isOtherSelected,
                     borderColor = MaterialTheme.colorScheme.outline,
                     selectedBorderColor = MaterialTheme.colorScheme.primary
                 )
@@ -713,6 +795,152 @@ private fun formatKickoffTime(date: String, use12h: Boolean): String {
     } catch (e: Exception) {
         date
     }
+}
+
+@Composable
+private fun LeagueSectionHeader(
+    leagueName: String,
+    leagueLogo: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PicassoImage(url = leagueLogo, teamName = leagueName, size = 20.dp)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = leagueName.uppercase(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MoreLeaguesBottomSheet(
+    leagues: List<LeagueSummary>,
+    sheetState: androidx.compose.material3.SheetState,
+    onLeagueSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var query by remember { mutableStateOf("") }
+    val filtered = remember(leagues, query) {
+        if (query.isBlank()) leagues
+        else leagues.filter {
+            it.name.contains(query, ignoreCase = true) ||
+            it.country.contains(query, ignoreCase = true)
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.more_leagues_title).uppercase(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(horizontal = H_PAD, vertical = 8.dp)
+            )
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                placeholder = { Text(stringResource(R.string.search_leagues_hint)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = H_PAD, vertical = 8.dp)
+            )
+            if (filtered.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_leagues_found),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    items(filtered, key = { it.id }) { league ->
+                        LeagueSheetRow(
+                            league = league,
+                            onClick = { onLeagueSelected(league.name) }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = H_PAD),
+                            thickness = 0.5.dp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LeagueSheetRow(league: LeagueSummary, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = H_PAD, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        PicassoImage(url = league.logo, teamName = league.name, size = 32.dp)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = league.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "${countryFlagEmoji(league.country)} ${league.country}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun countryFlagEmoji(country: String): String {
+    val codes = mapOf(
+        "England" to "GB", "Scotland" to "GB", "Wales" to "GB", "Northern Ireland" to "GB",
+        "Spain" to "ES", "France" to "FR", "Germany" to "DE", "Italy" to "IT",
+        "Portugal" to "PT", "Netherlands" to "NL", "Belgium" to "BE", "Turkey" to "TR",
+        "Greece" to "GR", "Sweden" to "SE", "Norway" to "NO", "Denmark" to "DK",
+        "Switzerland" to "CH", "Austria" to "AT", "Russia" to "RU", "Ukraine" to "UA",
+        "Poland" to "PL", "Czech Republic" to "CZ", "Romania" to "RO", "Croatia" to "HR",
+        "Serbia" to "RS", "Hungary" to "HU", "Slovakia" to "SK", "Slovenia" to "SI",
+        "Ireland" to "IE", "Finland" to "FI", "Israel" to "IL", "Cyprus" to "CY",
+        "Albania" to "AL", "Bulgaria" to "BG", "Georgia" to "GE", "Azerbaijan" to "AZ",
+        "Kazakhstan" to "KZ", "Belarus" to "BY", "Moldova" to "MD", "Armenia" to "AM",
+        "Brazil" to "BR", "Argentina" to "AR", "Mexico" to "MX", "Colombia" to "CO",
+        "Chile" to "CL", "Uruguay" to "UY", "Peru" to "PE", "Ecuador" to "EC",
+        "Bolivia" to "BO", "Paraguay" to "PY", "Venezuela" to "VE", "Costa Rica" to "CR",
+        "Honduras" to "HN", "Guatemala" to "GT", "Panama" to "PA", "USA" to "US",
+        "Canada" to "CA", "Japan" to "JP", "South Korea" to "KR", "China" to "CN",
+        "Australia" to "AU", "Saudi Arabia" to "SA", "UAE" to "AE", "Qatar" to "QA",
+        "Egypt" to "EG", "Nigeria" to "NG", "Morocco" to "MA", "South Africa" to "ZA",
+        "Tunisia" to "TN", "Algeria" to "DZ", "Ghana" to "GH", "Senegal" to "SN",
+        "Thailand" to "TH", "Indonesia" to "ID", "Vietnam" to "VN", "India" to "IN"
+    )
+    val iso = codes[country] ?: return ""
+    return iso.map { char -> String(Character.toChars(0x1F1E6 + (char - 'A'))) }.joinToString("")
 }
 
 // ── Previews ─────────────────────────────────────────────────────────────────

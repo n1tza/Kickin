@@ -131,6 +131,8 @@ fun KickinApp() {
                 val timeFormat by homeViewModel.timeFormat.collectAsState()
                 val isLoading by homeViewModel.isLoading.collectAsState()
                 val apiError by homeViewModel.error.collectAsState()
+                val groupedOtherFixtures by homeViewModel.groupedOtherFixtures.collectAsState()
+                val otherLeagues by homeViewModel.otherLeagues.collectAsState()
                 HomeScreen(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
@@ -144,6 +146,8 @@ fun KickinApp() {
                     onFixtureClick = { id ->
                         navController.navigate(Screen.MatchDetail.createRoute(id))
                     },
+                    groupedOtherFixtures = groupedOtherFixtures,
+                    otherLeagues = otherLeagues,
                     timeFormat = timeFormat,
                     isLoading = isLoading,
                     apiError = apiError
