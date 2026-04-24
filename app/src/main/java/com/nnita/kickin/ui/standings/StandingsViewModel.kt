@@ -85,7 +85,7 @@ class StandingsViewModel(application: Application) : AndroidViewModel(applicatio
             _error.value = null
             try {
                 val entries = withContext(Dispatchers.IO) {
-                    RetrofitClient.instance.getStandings(leagueId, SEASON)
+                    RetrofitClient.instance.getStandings(leagueId, currentSeason)
                         .response
                         .firstOrNull()?.league?.standings?.firstOrNull()
                         ?: emptyList()
@@ -124,7 +124,9 @@ class StandingsViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    companion object {
-        private const val SEASON = 2024
-    }
+    private val currentSeason: Int
+        get() {
+            val now = java.time.LocalDate.now()
+            return if (now.monthValue >= 8) now.year else now.year - 1
+        }
 }
