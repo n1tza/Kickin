@@ -456,3 +456,69 @@ Both attributed in Legal screen.
 - Picasso requires an `AndroidView` wrapper inside Compose — use a helper composable `PicassoImage(url, modifier)` so it's reusable and previewable (preview with placeholder drawable)
 - MPAndroidChart requires `AndroidView` — wrap in a `MatchStatChart(stats, modifier)` composable with its own preview
 - Never commit API key to git — use `local.properties` and `BuildConfig` field
+
+---
+
+## Project 3 Requirements Checklist
+
+### 1 App Icon, Custom Fonts, Theme [6 pts]
+- [x] App icon added (`res/mipmap/`)
+- [x] Added custom fonts
+- [x] Custom color theme (NeonGreen, CharcoalBlack, LiveRed)
+- [x] Dark mode works
+
+### 2 Layout and Navigation [24 pts]
+- [x] **Home** — live + scheduled fixtures with league filter, grouping, mode toggle
+- [x] **API A (Standings)** — league standings table with team crests via Picasso
+- [x] **API B (Match Detail)** — fixture header + real stats from `/fixtures/statistics`
+- [x] **Settings** — 4 settings (league picker, display mode radio, time format toggle, data source switch)
+- [x] **Info** — app icon, version name, version code, build date, copyright
+- [x] **Legal** — attributions for API-Football, Picasso, RoundCornerProgressBar
+
+### 3 Animations [6 pts]
+- [x] Match detail enter/exit: scale + fade (MainActivity NavHost transitions)
+- [x] Standings row slide-in: `AnimatedVisibility` with `slideInHorizontally` + staggered delay
+- [x] Stat bar animated progress: `animateFloatAsState` in `StatRow`
+- [ ] **Score flash animation** (listed in CLAUDE.md spec) — not yet implemented. Consider adding `animateColorAsState` pulse on score text in MatchListCard when data refreshes.
+
+### 4 Localization [4 pts]
+- [x] `res/values/strings.xml` — all user-facing text uses string resources
+- [ ] **Spanish `res/values-es/strings.xml` does NOT exist yet** — must create it with all strings translated.
+
+### 5 SharedPreferences [4 pts]
+- [x] 4 settings persisted: `pref_league`, `pref_display`, `pref_time_fmt`, `pref_source`
+- [x] All ViewModels react to changes via `OnSharedPreferenceChangeListener`
+- [x] State correctly restored on relaunch
+
+### 6 Dialog [6 pts]
+- [ ] **No functional dialog implemented yet.** The `DatePickerDialog` on the Past tab is a system picker, not a custom dialog with 2–3 user options. Must add e.g. a "Filter Matches" `AlertDialog` on Home with options like Today / Yesterday / Pick Date, or a quick-filter dialog. Must be listed in the assessment sheet.
+
+### 7 Tests [10 pts]
+- [ ] **Test 1 (sample data reader) NOT implemented** — `ExampleInstrumentedTest.kt` only checks package name. Must add a test that opens `sample_fixtures.json` from assets, parses it, and logs each fixture to logcat with tag `SAMPLE_TEST`.
+- [ ] **Test 2 (live API) NOT implemented** — Must add a test that calls `GET /fixtures?date=TODAY` with the real API key, asserts HTTP 200, and logs the raw JSON with tag `API_TEST`.
+
+### 8 Switch to API [10 pts]
+- [x] Settings 4th toggle switches between file and live API
+- [x] All screens (Home, Standings, Match Detail) reload from the correct source on switch
+- [x] Same `sample_fixtures.json` file used by both the test and the file mode
+
+### 9 Libraries [10 pts]
+- [x] **Picasso** — team/league crests on Home, Standings, Match Detail, More sheet
+- [x] **RoundCornerProgressBar** (`com.akexorcist:round-corner-progress-bar`) — stat bars in Match Detail
+- [x] Both attributed in Legal screen
+
+### 10 Custom Feature [10 pts]
+- [ ] **Not yet implemented / branched.** CLAUDE.md spec: form-based match predictor on Match Detail using last-5 results from `/fixtures?team=ID&last=5`, displayed as win-probability bars. Must be on branch `feature/match-predictor` off final `main`.
+
+### 11 Git [10 pts]
+- [x] 20 real commits on `main` (well above the 12 minimum)
+- [ ] **Custom feature branch** `feature/match-predictor` not yet created
+
+---
+
+### Summary — What To Do Before April 29
+1. Wire up `russo_one.ttf` in `Type.kt` as the app's `FontFamily`
+2. Create `res/values-es/strings.xml` with Spanish translations of all strings
+3. Add a functional `AlertDialog` on Home (e.g. quick date filter with 3 options)
+4. Write the two instrumented tests in `androidTest/`
+5. Implement + branch the custom feature (`feature/match-predictor`)
