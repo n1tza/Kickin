@@ -517,8 +517,7 @@ Both attributed in Legal screen.
 ---
 
 ### Summary — What To Do Before April 29
-1. Wire up `russo_one.ttf` in `Type.kt` as the app's `FontFamily`
-2. Create `res/values-es/strings.xml` with Spanish translations of all strings
-3. Add a functional `AlertDialog` on Home (e.g. quick date filter with 3 options)
-4. Write the two instrumented tests in `androidTest/`
-5. Implement + branch the custom feature (`feature/match-predictor`)
+1. Create `res/values-es/strings.xml` with Spanish translations of all strings
+2. Add a functional `AlertDialog` on Home (e.g. quick date filter with 3 options)
+3. Write the two instrumented tests in `androidTest/`
+4. Implement + branch the custom feature (`feature/match-predictor`)
