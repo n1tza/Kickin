@@ -262,3 +262,14 @@ fun PreviewLegalCardDark() {
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLegalSectionLabel() {
+    KickinTheme {
+        LegalSectionLabel(
+            title = "Data Provider",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}

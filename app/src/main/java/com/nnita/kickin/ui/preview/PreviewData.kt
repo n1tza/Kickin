@@ -1,6 +1,8 @@
 package com.nnita.kickin.ui.preview
 
 import com.nnita.kickin.model.Fixture
+import com.nnita.kickin.model.LeagueSummary
+import com.nnita.kickin.model.Standing
 
 val previewFixtureFT = Fixture(
     id = 1001,
@@ -100,3 +102,25 @@ val previewFixtureNS2 = Fixture(
 val previewLiveFixtures = listOf(previewFixtureLive, previewFixtureHT)
 val previewOtherFixtures = listOf(previewFixtureFT, previewFixtureNS, previewFixtureNS2)
 val previewLeagues = listOf("All", "Premier League", "Serie A", "La Liga", "Ligue 1")
+
+val previewStanding = Standing(
+    rank = 1,
+    teamName = "Arsenal",
+    teamLogo = "",
+    played = 30,
+    win = 22,
+    draw = 6,
+    loss = 2,
+    goalsFor = 74,
+    goalsAgainst = 32,
+    goalsDiff = 42,
+    points = 72,
+    form = "WWDWW",
+    description = "Champions League"
+)
+
+val previewLeagueSummaries = listOf(
+    LeagueSummary(id = 307, name = "Saudi Pro League", logo = "", country = "Saudi Arabia"),
+    LeagueSummary(id = 94, name = "Primeira Liga", logo = "", country = "Portugal"),
+    LeagueSummary(id = 88, name = "Eredivisie", logo = "", country = "Netherlands")
+)

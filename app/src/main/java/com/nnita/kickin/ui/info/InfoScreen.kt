@@ -251,3 +251,27 @@ fun PreviewInfoRowDark() {
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewInfoCard() {
+    KickinTheme {
+        InfoCard(modifier = Modifier.padding(16.dp)) {
+            InfoRow(label = "Version", value = "1.0.0")
+            InfoDivider()
+            InfoRow(label = "Build", value = "42")
+            InfoDivider()
+            InfoRow(label = "Package", value = "com.nnita.kickin")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewInfoDivider() {
+    KickinTheme {
+        Surface(modifier = Modifier.padding(16.dp)) {
+            InfoDivider()
+        }
+    }
+}

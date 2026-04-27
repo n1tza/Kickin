@@ -52,6 +52,7 @@ import com.nnita.kickin.R
 import com.nnita.kickin.model.Standing
 import com.nnita.kickin.ui.components.PicassoImage
 import com.nnita.kickin.ui.components.TeamIcon
+import com.nnita.kickin.ui.preview.previewStanding
 import com.nnita.kickin.ui.theme.KickinTheme
 import kotlinx.coroutines.delay
 
@@ -294,4 +295,40 @@ private fun StandingValueItem(text: String, fontWeight: FontWeight = FontWeight.
 @Composable
 fun PreviewStandingsScreen() {
     KickinTheme { StandingsScreen() }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStandingsLeagueFilterRow() {
+    KickinTheme {
+        LeagueFilterRow(
+            leagues = listOf("Premier League", "La Liga", "Serie A", "Bundesliga", "Ligue 1"),
+            selectedLeague = "Premier League",
+            onLeagueSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStandingsHeader() {
+    KickinTheme { StandingsHeader() }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStandingHeaderItem() {
+    KickinTheme { StandingHeaderItem(text = "PTS") }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStandingRow() {
+    KickinTheme { StandingRow(standing = previewStanding) }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStandingValueItem() {
+    KickinTheme { StandingValueItem(text = "72", fontWeight = FontWeight.ExtraBold) }
 }

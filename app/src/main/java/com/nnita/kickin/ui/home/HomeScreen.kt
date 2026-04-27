@@ -91,6 +91,7 @@ import com.nnita.kickin.ui.preview.previewFixtureFT
 import com.nnita.kickin.ui.preview.previewFixtureHT
 import com.nnita.kickin.ui.preview.previewFixtureLive
 import com.nnita.kickin.ui.preview.previewFixtureNS
+import com.nnita.kickin.ui.preview.previewLeagueSummaries
 import com.nnita.kickin.ui.preview.previewLeagues
 import com.nnita.kickin.ui.preview.previewLiveFixtures
 import com.nnita.kickin.ui.preview.previewOtherFixtures
@@ -1566,6 +1567,219 @@ fun PreviewMatchListCardDark() {
             fixture = previewFixtureFT,
             onClick = {},
             modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLeagueFilterRow() {
+    KickinTheme {
+        LeagueFilterRow(
+            leagues = previewLeagues,
+            selectedLeague = "Premier League",
+            onLeagueSelected = {},
+            onMoreClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSectionHeader() {
+    KickinTheme {
+        SectionHeader(
+            title = "LIVE MATCHES",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewTeamColumn() {
+    KickinTheme {
+        TeamColumn(
+            teamName = "Arsenal",
+            teamLogo = "",
+            iconSize = 44.dp,
+            modifier = Modifier.width(100.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewScoreDisplayLive() {
+    KickinTheme {
+        ScoreDisplay(fixture = previewFixtureLive)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewScoreDisplayNS() {
+    KickinTheme {
+        ScoreDisplay(fixture = previewFixtureNS)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLiveTimeBadge() {
+    KickinTheme {
+        LiveTimeBadge(fixture = previewFixtureLive)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMatchCenterInfoFT() {
+    KickinTheme {
+        MatchCenterInfo(fixture = previewFixtureFT)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMatchCenterInfoNS() {
+    KickinTheme {
+        MatchCenterInfo(fixture = previewFixtureNS)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFixtureFilterDialog() {
+    KickinTheme {
+        FixtureFilterDialog(
+            selectedLeague = "All",
+            selectedCountries = emptySet(),
+            selectedLeagueIds = emptySet(),
+            sortOrder = SortOrder.TIME_ASC,
+            availableCountries = listOf("England", "Spain", "Italy", "France", "Germany"),
+            availableLeagues = previewLeagueSummaries,
+            onCountriesChanged = {},
+            onLeagueIdsChanged = {},
+            onSortOrderChanged = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterExpandableHeaderCollapsed() {
+    KickinTheme {
+        FilterExpandableHeader(
+            title = "Filter by Country",
+            selectedCount = 0,
+            expanded = false,
+            onToggle = {},
+            onClear = {},
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterExpandableHeaderExpanded() {
+    KickinTheme {
+        FilterExpandableHeader(
+            title = "Filter by League",
+            selectedCount = 2,
+            expanded = true,
+            onToggle = {},
+            onClear = {},
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterSearchField() {
+    KickinTheme {
+        FilterSearchField(
+            query = "",
+            onQueryChange = {},
+            placeholder = "Search countries",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterDialogSectionHeader() {
+    KickinTheme {
+        FilterDialogSectionHeader(
+            title = "Sort By",
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterRadioRow() {
+    KickinTheme {
+        FilterRadioRow(
+            label = "Time (Earliest First)",
+            selected = true,
+            onClick = {},
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterCheckboxRow() {
+    KickinTheme {
+        FilterCheckboxRow(
+            label = "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England",
+            checked = true,
+            onToggle = {},
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLeagueSectionHeader() {
+    KickinTheme {
+        LeagueSectionHeader(
+            leagueName = "Premier League",
+            leagueLogo = "",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLeagueSheetRow() {
+    KickinTheme {
+        LeagueSheetRow(
+            league = LeagueSummary(id = 94, name = "Primeira Liga", logo = "", country = "Portugal"),
+            onClick = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+fun PreviewMoreLeaguesBottomSheet() {
+    KickinTheme {
+        MoreLeaguesBottomSheet(
+            leagues = previewLeagueSummaries,
+            sheetState = rememberModalBottomSheetState(),
+            onLeagueSelected = {},
+            onDismiss = {}
         )
     }
 }
