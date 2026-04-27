@@ -205,7 +205,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             KEY_LEAGUE -> {
                 val name = leagueIdToName[prefs.getString(KEY_LEAGUE, "39")] ?: "All"
                 _favLeagueName.value = name
-                if (_displayMode.value == "league") _selectedLeague.value = name
+                _selectedLeague.value = name
             }
             KEY_DISPLAY_MODE -> {
                 val dm = prefs.getString(KEY_DISPLAY_MODE, "all") ?: "all"

@@ -57,6 +57,7 @@
 
     <!-- Settings -->
     <string name="settings_league_label">Liga Favorita</string>
+    <string name="settings_league_none">Ninguna</string>
     <string name="settings_display_mode_label">Modo de Visualización</string>
     <string name="settings_display_live">Solo en Vivo</string>
     <string name="settings_display_all">Todos Hoy</string>

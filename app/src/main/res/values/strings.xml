@@ -57,6 +57,7 @@
 
     <!-- Settings -->
     <string name="settings_league_label">Favorite League</string>
+    <string name="settings_league_none">None</string>
     <string name="settings_display_mode_label">Display Mode</string>
     <string name="settings_display_live">Live Only</string>
     <string name="settings_display_all">All Today</string>

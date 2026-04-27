@@ -172,6 +172,7 @@ private fun LeaguePicker(
     modifier: Modifier = Modifier
 ) {
     val leagues = listOf(
+        "none" to stringResource(R.string.settings_league_none),
         "39" to stringResource(R.string.league_premier_league),
         "140" to stringResource(R.string.league_la_liga),
         "135" to stringResource(R.string.league_serie_a),
@@ -179,7 +180,7 @@ private fun LeaguePicker(
         "61" to stringResource(R.string.league_ligue_1)
     )
     val selectedName = leagues.find { it.first == selectedLeagueId }?.second
-        ?: leagues.first().second
+        ?: stringResource(R.string.settings_league_none)
 
     var expanded by remember { mutableStateOf(false) }
 
