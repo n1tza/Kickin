@@ -13,6 +13,7 @@
     <string name="home_empty">No matches today</string>
     <string name="section_live">Live Matches</string>
     <string name="section_matches">Matches</string>
+    <string name="section_matches_subtitle">Finished &amp; Upcoming</string>
     <string name="filter_all">All</string>
 
     <!-- Score display -->
@@ -99,4 +100,24 @@
     <string name="more_leagues_title">More Leagues</string>
     <string name="search_leagues_hint">Search leagues or countries</string>
     <string name="no_leagues_found">No leagues found</string>
+    <string name="filter_dialog_title">Filter Matches</string>
+    <string name="filter_mode_all">All Matches</string>
+    <string name="filter_mode_live">Live Only</string>
+    <string name="filter_mode_league">Favorite League</string>
+    <string name="filter_matches_desc">Filter matches</string>
+    <string name="filter_and_sort">Filter &amp; Sort</string>
+    <string name="filter_sort_by">Sort By</string>
+    <string name="filter_sort_time_asc">Time (Earliest First)</string>
+    <string name="filter_sort_time_desc">Time (Latest First)</string>
+    <string name="filter_sort_alpha">A – Z</string>
+    <string name="filter_by_country">Filter by Country</string>
+    <string name="filter_by_league">Filter by League</string>
+    <string name="filter_clear">Clear</string>
+    <string name="filter_clear_all">Clear All</string>
+    <string name="filter_done">Done</string>
+    <string name="filter_league_override_note">A league chip is selected above — only sorting is available.</string>
+    <string name="filter_active_count">%1$d active</string>
+    <string name="search_countries_hint">Search countries</string>
+    <string name="search_filter_leagues_hint">Search leagues</string>
+    <string name="no_results_found">No results found</string>
 </resources>

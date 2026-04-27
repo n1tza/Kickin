@@ -35,6 +35,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 enum class MatchMode { TODAY, PAST }
+enum class SortOrder { TIME_ASC, TIME_DESC, ALPHA }
 
 private val mainLeagueIds = setOf(
     LeagueIds.PREMIER_LEAGUE,
@@ -75,12 +76,26 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs: SharedPreferences =
         application.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
 
+    private data class FilterState(
+        val countries: Set<String>,
+        val leagueIds: Set<Int>,
+        val sort: SortOrder
+    )
+
     private val _allFixtures = MutableStateFlow<List<Fixture>>(emptyList())
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
 
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _selectedCountries = MutableStateFlow<Set<String>>(emptySet())
+    private val _selectedLeagueFilterIds = MutableStateFlow<Set<Int>>(emptySet())
+    private val _sortOrder = MutableStateFlow(SortOrder.TIME_ASC)
+
+    val selectedCountries: StateFlow<Set<String>> = _selectedCountries.asStateFlow()
+    val selectedLeagueFilterIds: StateFlow<Set<Int>> = _selectedLeagueFilterIds.asStateFlow()
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
     private val favName: String
         get() = leagueIdToName[prefs.getString(KEY_LEAGUE, "39")] ?: "All"
@@ -96,6 +111,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val matchMode: StateFlow<MatchMode> = _matchMode.asStateFlow()
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
     val timeFormat: StateFlow<String> = _timeFormat.asStateFlow()
+    val displayMode: StateFlow<String> = _displayMode.asStateFlow()
 
     // Fixed chip list — always the same 5 leagues regardless of what's loaded
     val leagues: StateFlow<List<String>> = MutableStateFlow(listOf("All") + mainLeagueNames)
@@ -103,6 +119,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val effectiveLeague: Flow<String> =
         combine(_selectedLeague, _displayMode, _favLeagueName) { chip, dm, fav ->
             if (dm == "league") fav else chip
+        }
+
+    private val filterState: Flow<FilterState> =
+        combine(_selectedCountries, _selectedLeagueFilterIds, _sortOrder) { countries, ids, sort ->
+            FilterState(countries, ids, sort)
         }
 
     val liveFixtures: StateFlow<List<Fixture>> =
@@ -114,14 +135,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val otherFixtures: StateFlow<List<Fixture>> =
-        combine(_allFixtures, _matchMode, effectiveLeague, _displayMode) { fixtures, mode, league, dm ->
+        combine(_allFixtures, _matchMode, effectiveLeague, _displayMode, filterState) { fixtures, mode, league, dm, filter ->
             if (dm == "live" && mode == MatchMode.TODAY) return@combine emptyList()
             val base = if (mode == MatchMode.PAST) {
                 fixtures.filter { !it.isLive() && it.status != "NS" }
             } else {
                 fixtures.filter { !it.isLive() }
             }
-            base.filter { it.matchesLeague(league) }
+            var result = base.filter { it.matchesLeague(league) }
+            if (league == "All") {
+                if (filter.countries.isNotEmpty()) result = result.filter { it.leagueCountry in filter.countries }
+                if (filter.leagueIds.isNotEmpty()) result = result.filter { it.leagueId in filter.leagueIds }
+            }
+            when (filter.sort) {
+                SortOrder.ALPHA -> result.sortedBy { it.homeTeam }
+                SortOrder.TIME_DESC -> result.sortedByDescending { it.date }
+                SortOrder.TIME_ASC -> result.sortedBy { it.date }
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     // Grouped view used when "All" is selected — main leagues first (by ID), then others alphabetically
@@ -154,6 +184,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // All distinct countries with fixtures — used for the filter dialog
+    val availableCountries: StateFlow<List<String>> = _allFixtures
+        .map { fixtures ->
+            fixtures.map { it.leagueCountry }.filter { it.isNotBlank() }.distinct().sorted()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // All leagues with fixtures — used for the filter dialog (includes main 5)
+    val availableFilterLeagues: StateFlow<List<LeagueSummary>> = _allFixtures
+        .map { fixtures ->
+            fixtures.distinctBy { it.leagueId }
+                .map { LeagueSummary(it.leagueId, it.leagueName, it.leagueLogo, it.leagueCountry) }
+                .sortedBy { it.name }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
             KEY_LEAGUE -> {
@@ -180,11 +226,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectLeague(league: String) { _selectedLeague.value = league }
 
+    fun selectDisplayMode(mode: String) {
+        prefs.edit().putString(KEY_DISPLAY_MODE, mode).apply()
+        // prefsListener picks up KEY_DISPLAY_MODE and updates _displayMode
+    }
+
     fun selectMode(mode: MatchMode) {
         _matchMode.value = mode
         _selectedLeague.value = "All"
+        _selectedCountries.value = emptySet()
+        _selectedLeagueFilterIds.value = emptySet()
         loadFixtures()
     }
+
+    fun setCountryFilter(countries: Set<String>) { _selectedCountries.value = countries }
+    fun setLeagueFilter(ids: Set<Int>) { _selectedLeagueFilterIds.value = ids }
+    fun setSortOrder(order: SortOrder) { _sortOrder.value = order }
 
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date

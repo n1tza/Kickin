@@ -479,7 +479,6 @@ Both attributed in Legal screen.
 - [x] Match detail enter/exit: scale + fade (MainActivity NavHost transitions)
 - [x] Standings row slide-in: `AnimatedVisibility` with `slideInHorizontally` + staggered delay
 - [x] Stat bar animated progress: `animateFloatAsState` in `StatRow`
-- [ ] **Score flash animation** (listed in CLAUDE.md spec) — not yet implemented. Consider adding `animateColorAsState` pulse on score text in MatchListCard when data refreshes.
 
 ### 4 Localization [4 pts]
 - [x] `res/values/strings.xml` — all user-facing text uses string resources
@@ -491,7 +490,7 @@ Both attributed in Legal screen.
 - [x] State correctly restored on relaunch
 
 ### 6 Dialog [6 pts]
-- [ ] **No functional dialog implemented yet.** The `DatePickerDialog` on the Past tab is a system picker, not a custom dialog with 2–3 user options. Must add e.g. a "Filter Matches" `AlertDialog` on Home with options like Today / Yesterday / Pick Date, or a quick-filter dialog. Must be listed in the assessment sheet.
+- [x] **DisplayModeFilterDialog** — `AlertDialog` on Home screen, triggered by filter icon (⊟) in the TopAppBar. Three radio options: All Matches / Live Only / Favorite League. Immediately updates display mode and dismisses. Icon tints primary color when a non-default filter is active.
 
 ### 7 Tests [10 pts]
 - [ ] **Test 1 (sample data reader) NOT implemented** — `ExampleInstrumentedTest.kt` only checks package name. Must add a test that opens `sample_fixtures.json` from assets, parses it, and logs each fixture to logcat with tag `SAMPLE_TEST`.
@@ -514,10 +513,12 @@ Both attributed in Legal screen.
 - [x] 20 real commits on `main` (well above the 12 minimum)
 - [ ] **Custom feature branch** `feature/match-predictor` not yet created
 
+12 Legal page
+
 ---
 
 ### Summary — What To Do Before April 29
 1. Create `res/values-es/strings.xml` with Spanish translations of all strings
-2. Add a functional `AlertDialog` on Home (e.g. quick date filter with 3 options)
-3. Write the two instrumented tests in `androidTest/`
-4. Implement + branch the custom feature (`feature/match-predictor`)
+2. Write the two instrumented tests in `androidTest/`
+3. Implement + branch the custom feature (`feature/match-predictor`)
+4. Implement legal page

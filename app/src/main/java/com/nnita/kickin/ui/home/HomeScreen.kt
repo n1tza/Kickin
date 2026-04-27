@@ -26,10 +26,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
@@ -114,6 +124,14 @@ fun HomeScreen(
     onFixtureClick: (Int) -> Unit,
     groupedOtherFixtures: List<Pair<String, List<Fixture>>> = emptyList(),
     otherLeagues: List<LeagueSummary> = emptyList(),
+    selectedCountries: Set<String> = emptySet(),
+    selectedLeagueFilterIds: Set<Int> = emptySet(),
+    sortOrder: SortOrder = SortOrder.TIME_ASC,
+    availableCountries: List<String> = emptyList(),
+    availableFilterLeagues: List<LeagueSummary> = emptyList(),
+    onCountriesChanged: (Set<String>) -> Unit = {},
+    onLeagueFilterIdsChanged: (Set<Int>) -> Unit = {},
+    onSortOrderChanged: (SortOrder) -> Unit = {},
     timeFormat: String = "24h",
     isLoading: Boolean = false,
     apiError: String? = null,
@@ -121,6 +139,7 @@ fun HomeScreen(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showMoreSheet by remember { mutableStateOf(false) }
+    var showFilterSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
@@ -172,6 +191,21 @@ fun HomeScreen(
                 DatePicker(state = datePickerState)
             }
         }
+    }
+
+    if (showFilterSheet) {
+        FixtureFilterDialog(
+            selectedLeague = selectedLeague,
+            selectedCountries = selectedCountries,
+            selectedLeagueIds = selectedLeagueFilterIds,
+            sortOrder = sortOrder,
+            availableCountries = availableCountries,
+            availableLeagues = availableFilterLeagues,
+            onCountriesChanged = onCountriesChanged,
+            onLeagueIdsChanged = onLeagueFilterIdsChanged,
+            onSortOrderChanged = onSortOrderChanged,
+            onDismiss = { showFilterSheet = false }
+        )
     }
 
     if (showMoreSheet) {
@@ -268,16 +302,39 @@ fun HomeScreen(
                         }
                     }
                 }
-                item { Spacer(modifier = Modifier.height(8.dp)) }
+                item { Spacer(modifier = Modifier.height(4.dp)) }
             }
 
             val useGrouped = selectedLeague == "All" && groupedOtherFixtures.isNotEmpty()
+            val activeFilterCount = selectedCountries.size + selectedLeagueFilterIds.size
 
-            if (!useGrouped) {
-                item {
-                    SectionHeader(
-                        title = stringResource(R.string.section_matches).uppercase(),
-                        modifier = Modifier.padding(horizontal = H_PAD, vertical = 12.dp)
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = H_PAD)
+                        .padding(top = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.section_matches).uppercase(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        if (matchMode == MatchMode.TODAY) {
+                            Text(
+                                text = stringResource(R.string.section_matches_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    FilterSortButton(
+                        activeFilterCount = activeFilterCount,
+                        isSortNonDefault = sortOrder != SortOrder.TIME_ASC,
+                        onClick = { showFilterSheet = true }
                     )
                 }
             }
@@ -798,6 +855,380 @@ private fun formatKickoffTime(date: String, use12h: Boolean): String {
 }
 
 @Composable
+private fun FilterSortButton(
+    activeFilterCount: Int,
+    isSortNonDefault: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isActive = activeFilterCount > 0 || isSortNonDefault
+    Row(
+        modifier = modifier.clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.FilterList,
+            contentDescription = stringResource(R.string.filter_matches_desc),
+            modifier = Modifier.size(16.dp),
+            tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = stringResource(R.string.filter_and_sort),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+            color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (activeFilterCount > 0) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.primary
+            ) {
+                Text(
+                    text = stringResource(R.string.filter_active_count, activeFilterCount),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FixtureFilterDialog(
+    selectedLeague: String,
+    selectedCountries: Set<String>,
+    selectedLeagueIds: Set<Int>,
+    sortOrder: SortOrder,
+    availableCountries: List<String>,
+    availableLeagues: List<LeagueSummary>,
+    onCountriesChanged: (Set<String>) -> Unit,
+    onLeagueIdsChanged: (Set<Int>) -> Unit,
+    onSortOrderChanged: (SortOrder) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val chipLeagueActive = selectedLeague != "All"
+    var countriesExpanded by remember { mutableStateOf(selectedCountries.isNotEmpty()) }
+    var leaguesExpanded by remember { mutableStateOf(selectedLeagueIds.isNotEmpty()) }
+    var countryQuery by remember { mutableStateOf("") }
+    var leagueQuery by remember { mutableStateOf("") }
+
+    val filteredCountries = remember(availableCountries, countryQuery) {
+        if (countryQuery.isBlank()) availableCountries
+        else availableCountries.filter { it.contains(countryQuery, ignoreCase = true) }
+    }
+    val filteredLeagues = remember(availableLeagues, leagueQuery) {
+        if (leagueQuery.isBlank()) availableLeagues
+        else availableLeagues.filter {
+            it.name.contains(leagueQuery, ignoreCase = true) ||
+            it.country.contains(leagueQuery, ignoreCase = true)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.filter_dialog_title).uppercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.weight(1f)
+                )
+                if (!chipLeagueActive && (selectedCountries.isNotEmpty() || selectedLeagueIds.isNotEmpty())) {
+                    TextButton(
+                        onClick = {
+                            onCountriesChanged(emptySet())
+                            onLeagueIdsChanged(emptySet())
+                        },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.filter_clear_all),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 480.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Sort — always visible, no toggle
+                FilterDialogSectionHeader(title = stringResource(R.string.filter_sort_by))
+                listOf(
+                    SortOrder.TIME_ASC  to R.string.filter_sort_time_asc,
+                    SortOrder.TIME_DESC to R.string.filter_sort_time_desc,
+                    SortOrder.ALPHA     to R.string.filter_sort_alpha
+                ).forEach { (order, labelRes) ->
+                    FilterRadioRow(
+                        label = stringResource(labelRes),
+                        selected = sortOrder == order,
+                        onClick = { onSortOrderChanged(order) }
+                    )
+                }
+
+                if (chipLeagueActive) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.filter_league_override_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    // Country section — expandable
+                    FilterExpandableHeader(
+                        title = stringResource(R.string.filter_by_country),
+                        selectedCount = selectedCountries.size,
+                        expanded = countriesExpanded,
+                        onToggle = { countriesExpanded = !countriesExpanded },
+                        onClear = { onCountriesChanged(emptySet()) }
+                    )
+                    if (countriesExpanded) {
+                        FilterSearchField(
+                            query = countryQuery,
+                            onQueryChange = { countryQuery = it },
+                            placeholder = stringResource(R.string.search_countries_hint)
+                        )
+                        if (filteredCountries.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_results_found),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                        filteredCountries.forEach { country ->
+                            FilterCheckboxRow(
+                                label = "${countryFlagEmoji(country)} $country",
+                                checked = country in selectedCountries,
+                                onToggle = {
+                                    onCountriesChanged(
+                                        if (country in selectedCountries) selectedCountries - country
+                                        else selectedCountries + country
+                                    )
+                                }
+                            )
+                        }
+                    }
+
+                    // League section — expandable
+                    FilterExpandableHeader(
+                        title = stringResource(R.string.filter_by_league),
+                        selectedCount = selectedLeagueIds.size,
+                        expanded = leaguesExpanded,
+                        onToggle = { leaguesExpanded = !leaguesExpanded },
+                        onClear = { onLeagueIdsChanged(emptySet()) }
+                    )
+                    if (leaguesExpanded) {
+                        FilterSearchField(
+                            query = leagueQuery,
+                            onQueryChange = { leagueQuery = it },
+                            placeholder = stringResource(R.string.search_filter_leagues_hint)
+                        )
+                        if (filteredLeagues.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_results_found),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                        filteredLeagues.forEach { league ->
+                            FilterCheckboxRow(
+                                label = league.name,
+                                checked = league.id in selectedLeagueIds,
+                                onToggle = {
+                                    onLeagueIdsChanged(
+                                        if (league.id in selectedLeagueIds) selectedLeagueIds - league.id
+                                        else selectedLeagueIds + league.id
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.filter_done))
+            }
+        }
+    )
+}
+
+@Composable
+private fun FilterExpandableHeader(
+    title: String,
+    selectedCount: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(top = 16.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f)
+        )
+        if (selectedCount > 0) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Text(
+                    text = "$selectedCount",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+            TextButton(
+                onClick = onClear,
+                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.filter_clear),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
+        Icon(
+            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun FilterSearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall) },
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun FilterDialogSectionHeader(
+    title: String,
+    showClear: Boolean = false,
+    onClear: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        if (showClear) {
+            TextButton(
+                onClick = onClear,
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.filter_clear),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilterRadioRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+private fun FilterCheckboxRow(
+    label: String,
+    checked: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Checkbox(checked = checked, onCheckedChange = { onToggle() })
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
 private fun LeagueSectionHeader(
     leagueName: String,
     leagueLogo: String,
@@ -944,6 +1375,22 @@ private fun countryFlagEmoji(country: String): String {
 }
 
 // ── Previews ─────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterSortButtonInactive() {
+    KickinTheme {
+        FilterSortButton(activeFilterCount = 0, isSortNonDefault = false, onClick = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFilterSortButtonActive() {
+    KickinTheme {
+        FilterSortButton(activeFilterCount = 3, isSortNonDefault = true, onClick = {})
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

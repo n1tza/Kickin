@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nnita.kickin.ui.home.HomeScreen
 import com.nnita.kickin.ui.home.HomeViewModel
 import com.nnita.kickin.ui.home.MatchMode
+import com.nnita.kickin.ui.home.SortOrder
 import com.nnita.kickin.ui.info.InfoScreen
 import com.nnita.kickin.ui.legal.LegalScreen
 import com.nnita.kickin.ui.matchdetail.MatchDetailScreen
@@ -133,6 +134,11 @@ fun KickinApp() {
                 val apiError by homeViewModel.error.collectAsState()
                 val groupedOtherFixtures by homeViewModel.groupedOtherFixtures.collectAsState()
                 val otherLeagues by homeViewModel.otherLeagues.collectAsState()
+                val selectedCountries by homeViewModel.selectedCountries.collectAsState()
+                val selectedLeagueFilterIds by homeViewModel.selectedLeagueFilterIds.collectAsState()
+                val sortOrder by homeViewModel.sortOrder.collectAsState()
+                val availableCountries by homeViewModel.availableCountries.collectAsState()
+                val availableFilterLeagues by homeViewModel.availableFilterLeagues.collectAsState()
                 HomeScreen(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
@@ -148,6 +154,14 @@ fun KickinApp() {
                     },
                     groupedOtherFixtures = groupedOtherFixtures,
                     otherLeagues = otherLeagues,
+                    selectedCountries = selectedCountries,
+                    selectedLeagueFilterIds = selectedLeagueFilterIds,
+                    sortOrder = sortOrder,
+                    availableCountries = availableCountries,
+                    availableFilterLeagues = availableFilterLeagues,
+                    onCountriesChanged = homeViewModel::setCountryFilter,
+                    onLeagueFilterIdsChanged = homeViewModel::setLeagueFilter,
+                    onSortOrderChanged = homeViewModel::setSortOrder,
                     timeFormat = timeFormat,
                     isLoading = isLoading,
                     apiError = apiError
