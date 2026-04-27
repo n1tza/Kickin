@@ -25,8 +25,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -65,6 +67,7 @@ fun MatchDetailScreen(
 ) {
     val fixture by viewModel.fixture.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val predictionState by viewModel.predictionState.collectAsState()
 
     LaunchedEffect(fixtureId) {
         viewModel.loadFixture(fixtureId)
@@ -99,7 +102,19 @@ fun MatchDetailScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 MatchHeader(fix)
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PredictSection(
+                    fixture = fix,
+                    predictionState = predictionState,
+                    onPredictClick = {
+                        viewModel.predictMatch(
+                            fix.homeTeamId, fix.homeTeam,
+                            fix.awayTeamId, fix.awayTeam
+                        )
+                    }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
 
                 if (fix.status == "NS") {
                     Text(
@@ -294,7 +309,185 @@ private fun StatRow(label: String, homeValue: Any, awayValue: Any) {
     }
 }
 
+@Composable
+private fun PredictSection(
+    fixture: Fixture,
+    predictionState: PredictionState,
+    onPredictClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.predict_section_title).uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            when (predictionState) {
+                is PredictionState.Idle -> {
+                    OutlinedButton(onClick = onPredictClick) {
+                        Text(stringResource(R.string.predict_button))
+                    }
+                }
+                is PredictionState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.height(32.dp).width(32.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.predict_loading),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                is PredictionState.Ready -> {
+                    PredictorBars(fixture, predictionState)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.predict_based_on),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                is PredictionState.Error -> {
+                    Text(
+                        text = stringResource(R.string.predict_error),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    TextButton(onClick = onPredictClick) {
+                        Text(stringResource(R.string.predict_retry))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PredictorBars(
+    fixture: Fixture,
+    state: PredictionState.Ready,
+    modifier: Modifier = Modifier
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
+    val secondaryColor = MaterialTheme.colorScheme.secondary.toArgb()
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant.toArgb()
+
+    var animStarted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animStarted = true }
+
+    val homeAnim by animateFloatAsState(
+        targetValue = if (animStarted) state.homeWinPct else 0f,
+        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+        label = "homeWinPct"
+    )
+    val awayAnim by animateFloatAsState(
+        targetValue = if (animStarted) state.awayWinPct else 0f,
+        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+        label = "awayWinPct"
+    )
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        PredictorTeamRow(
+            teamName = fixture.homeTeam,
+            pct = state.homeWinPct,
+            animPct = homeAnim,
+            barColor = primaryColor,
+            trackColor = trackColor,
+            reverse = false
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        PredictorTeamRow(
+            teamName = fixture.awayTeam,
+            pct = state.awayWinPct,
+            animPct = awayAnim,
+            barColor = secondaryColor,
+            trackColor = trackColor,
+            reverse = false
+        )
+    }
+}
+
+@Composable
+private fun PredictorTeamRow(
+    teamName: String,
+    pct: Float,
+    animPct: Float,
+    barColor: Int,
+    trackColor: Int,
+    reverse: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = teamName,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "${(pct * 100).toInt()}%",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        AndroidView(
+            modifier = Modifier.fillMaxWidth().height(12.dp),
+            factory = { context ->
+                RoundCornerProgressBar(context, null).apply {
+                    max = 1f
+                    progressColor = barColor
+                    progressBackgroundColor = trackColor
+                    isReverse = reverse
+                }
+            },
+            update = { it.progress = animPct }
+        )
+    }
+}
+
 // ── Previews ─────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPredictSectionIdle() {
+    KickinTheme {
+        PredictSection(
+            fixture = previewFixtureLive,
+            predictionState = PredictionState.Idle,
+            onPredictClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPredictSectionReady() {
+    KickinTheme {
+        PredictSection(
+            fixture = previewFixtureLive,
+            predictionState = PredictionState.Ready(homeWinPct = 0.62f, awayWinPct = 0.38f),
+            onPredictClick = {}
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

@@ -16,11 +16,19 @@ import com.nnita.kickin.network.RetrofitClient
 import com.nnita.kickin.ui.settings.KEY_DATA_SOURCE
 import com.nnita.kickin.ui.settings.PREF_FILE
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+sealed class PredictionState {
+    object Idle : PredictionState()
+    object Loading : PredictionState()
+    data class Ready(val homeWinPct: Float, val awayWinPct: Float) : PredictionState()
+    object Error : PredictionState()
+}
 
 class MatchDetailViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -32,7 +40,11 @@ class MatchDetailViewModel(application: Application) : AndroidViewModel(applicat
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _predictionState = MutableStateFlow<PredictionState>(PredictionState.Idle)
+    val predictionState: StateFlow<PredictionState> = _predictionState.asStateFlow()
+
     fun loadFixture(fixtureId: Int) {
+        _predictionState.value = PredictionState.Idle
         val source = prefs.getString(KEY_DATA_SOURCE, "file") ?: "file"
         if (source == "api") {
             loadFromApi(fixtureId)
@@ -97,6 +109,63 @@ class MatchDetailViewModel(application: Application) : AndroidViewModel(applicat
                 Log.e("DETAIL_FILE", "Failed to load fixture from file: ${e.message}")
             }
         }
+    }
+
+    fun predictMatch(homeTeamId: Int, homeTeamName: String, awayTeamId: Int, awayTeamName: String) {
+        val source = prefs.getString(KEY_DATA_SOURCE, "file") ?: "file"
+        if (source == "api") {
+            predictFromApi(homeTeamId, awayTeamId)
+        } else {
+            predictFromMock(homeTeamName, awayTeamName)
+        }
+    }
+
+    private fun predictFromApi(homeTeamId: Int, awayTeamId: Int) {
+        viewModelScope.launch {
+            _predictionState.value = PredictionState.Loading
+            try {
+                val (homeFixtures, awayFixtures) = withContext(Dispatchers.IO) {
+                    val home = RetrofitClient.instance.getTeamLastFixtures(homeTeamId, 5).response
+                    val away = RetrofitClient.instance.getTeamLastFixtures(awayTeamId, 5).response
+                    Pair(home, away)
+                }
+                val homePoints = computeFormPoints(homeFixtures, homeTeamId) + 2 // home advantage
+                val awayPoints = computeFormPoints(awayFixtures, awayTeamId)
+                val total = (homePoints + awayPoints).coerceAtLeast(1)
+                val homeWinPct = homePoints.toFloat() / total.toFloat()
+                _predictionState.value = PredictionState.Ready(homeWinPct, 1f - homeWinPct)
+            } catch (e: Exception) {
+                Log.e("PREDICTOR", "Failed to fetch team form: ${e.message}")
+                _predictionState.value = PredictionState.Error
+            }
+        }
+    }
+
+    private fun predictFromMock(homeTeamName: String, awayTeamName: String) {
+        viewModelScope.launch {
+            _predictionState.value = PredictionState.Loading
+            delay(700)
+            val homePoints = mockFormPoints(homeTeamName) + 2 // home advantage
+            val awayPoints = mockFormPoints(awayTeamName)
+            val total = (homePoints + awayPoints).coerceAtLeast(1)
+            val homeWinPct = homePoints.toFloat() / total.toFloat()
+            _predictionState.value = PredictionState.Ready(homeWinPct, 1f - homeWinPct)
+        }
+    }
+
+    private fun computeFormPoints(fixtures: List<com.nnita.kickin.model.FixtureResponse>, teamId: Int): Int =
+        fixtures.sumOf { f ->
+            val isHome = f.teams.home.id == teamId
+            when (if (isHome) f.teams.home.winner else f.teams.away.winner) {
+                true -> 3
+                null -> 1
+                false -> 0
+            }
+        }
+
+    private fun mockFormPoints(teamName: String): Int {
+        val hash = teamName.sumOf { it.code }
+        return (hash % 13) + 3 // 3–15, consistent for same team name
     }
 
     private fun mockStats(homeTeam: String, awayTeam: String) = listOf(

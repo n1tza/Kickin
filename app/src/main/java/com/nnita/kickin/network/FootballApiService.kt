@@ -24,6 +24,12 @@ interface FootballApiService {
         @Query("fixture") fixtureId: Int
     ): ApiResponse<List<MatchStatisticsResponse>>
 
+    @GET("fixtures")
+    suspend fun getTeamLastFixtures(
+        @Query("team") teamId: Int,
+        @Query("last") last: Int = 5
+    ): ApiResponse<List<FixtureResponse>>
+
     @GET("standings")
     suspend fun getStandings(
         @Query("league") leagueId: Int,

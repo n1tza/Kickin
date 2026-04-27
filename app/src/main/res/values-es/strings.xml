@@ -121,6 +121,14 @@
     <string name="info_copyright">© 2026 Nicolas Nita. Todos los derechos reservados.</string>
     <string name="info_tagline">Marcadores de fútbol en vivo, donde estés.</string>
 
+    <!-- Match predictor -->
+    <string name="predict_button">Predecir</string>
+    <string name="predict_section_title">Probabilidad de Victoria</string>
+    <string name="predict_loading">Analizando historial…</string>
+    <string name="predict_error">No se pudo cargar el historial del equipo</string>
+    <string name="predict_retry">Reintentar</string>
+    <string name="predict_based_on">Basado en los últimos 5 partidos · incluye ventaja local</string>
+
     <!-- Stat labels -->
     <string name="stat_shots_on_goal">Tiros a Puerta</string>
     <string name="stat_shots_off_goal">Tiros Desviados</string>

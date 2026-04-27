@@ -121,6 +121,14 @@
     <string name="info_copyright">© 2026 Nicolas Nita. All rights reserved.</string>
     <string name="info_tagline">Live football scores, wherever you are.</string>
 
+    <!-- Match predictor -->
+    <string name="predict_button">Predict</string>
+    <string name="predict_section_title">Win Probability</string>
+    <string name="predict_loading">Analyzing form…</string>
+    <string name="predict_error">Could not load team form</string>
+    <string name="predict_retry">Retry</string>
+    <string name="predict_based_on">Based on last 5 matches · includes home advantage</string>
+
     <!-- Stat labels -->
     <string name="stat_shots_on_goal">Shots on Goal</string>
     <string name="stat_shots_off_goal">Shots off Goal</string>
