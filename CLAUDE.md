@@ -487,7 +487,7 @@ Both attributed in Legal screen.
 
 ### 4 Localization [4 pts]
 - [x] `res/values/strings.xml` — all user-facing text uses string resources
-- [ ] **Spanish `res/values-es/strings.xml` does NOT exist yet** — must create it with all strings translated.
+- [x] `res/values-es/strings.xml` — all 151 strings translated to Spanish
 
 ### 5 SharedPreferences [4 pts]
 - [x] 4 settings persisted: `pref_league`, `pref_display`, `pref_time_fmt`, `pref_source`
@@ -528,5 +528,5 @@ Both attributed in Legal screen.
 ---
 
 ### Summary — What To Do Before April 29
-1. Create `res/values-es/strings.xml` with Spanish translations of all strings
+1. ~~Create `res/values-es/strings.xml`~~ ✓ Done
 2. Implement + branch the custom feature (`feature/match-predictor`)

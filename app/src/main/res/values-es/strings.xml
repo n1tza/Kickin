@@ -1,0 +1,151 @@
+<resources>
+    <string name="app_name">Kickin</string>
+
+    <!-- Bottom navigation labels -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_standings">Clasificación</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="nav_info">Info</string>
+    <string name="nav_legal">Legal</string>
+
+    <!-- Home screen -->
+    <string name="home_title">Partidos de Hoy</string>
+    <string name="home_empty">Sin partidos hoy</string>
+    <string name="section_live">Partidos en Vivo</string>
+    <string name="section_matches">Partidos</string>
+    <string name="section_matches_subtitle">Finalizados y Próximos</string>
+    <string name="filter_all">Todos</string>
+
+    <!-- Score display -->
+    <string name="score_placeholder">-</string>
+    <string name="score_separator">&#x2013;</string>
+    <string name="score_vs">vs</string>
+
+    <!-- Match status labels -->
+    <string name="status_ft">FT</string>
+    <string name="status_ht">MT</string>
+    <string name="status_aet">AET</string>
+    <string name="status_pen">PEN</string>
+    <string name="status_live_minute">%1$s\'</string>
+
+    <!-- Screen titles -->
+    <string name="screen_match_detail">Partido %1$d</string>
+
+    <!-- Standings Screen -->
+    <string name="standing_team">Equipo</string>
+    <string name="standing_played">PJ</string>
+    <string name="standing_gd">DG</string>
+    <string name="standing_pts">PTS</string>
+
+    <!-- Mode toggle -->
+    <string name="mode_today">Hoy</string>
+    <string name="mode_past">Pasados</string>
+    <string name="past_title">Partidos Pasados</string>
+    <string name="home_empty_past">Sin partidos para esta fecha</string>
+
+    <!-- Date selector -->
+    <string name="content_desc_prev_day">Día anterior</string>
+    <string name="content_desc_next_day">Día siguiente</string>
+    <string name="content_desc_calendar">Abrir calendario</string>
+    <string name="date_picker_ok">Aceptar</string>
+    <string name="date_picker_cancel">Cancelar</string>
+
+    <!-- Match detail -->
+    <string name="match_statistics">Estadísticas del Partido</string>
+    <string name="stats_unavailable">Las estadísticas estarán disponibles cuando comience el partido.</string>
+    <string name="content_desc_back">Atrás</string>
+
+    <!-- Settings -->
+    <string name="settings_league_label">Liga Favorita</string>
+    <string name="settings_display_mode_label">Modo de Visualización</string>
+    <string name="settings_display_live">Solo en Vivo</string>
+    <string name="settings_display_all">Todos Hoy</string>
+    <string name="settings_display_league">Por Liga</string>
+    <string name="settings_time_format_label">Formato de Hora</string>
+    <string name="settings_time_12h">12 horas</string>
+    <string name="settings_time_24h">24 horas</string>
+    <string name="settings_data_source_label">Fuente de Datos</string>
+    <string name="settings_data_file">Desde Archivo</string>
+    <string name="settings_data_api">API en Vivo</string>
+    <string name="settings_developer">Desarrollador</string>
+
+    <!-- League names -->
+    <string name="league_premier_league">Premier League</string>
+    <string name="league_la_liga">La Liga</string>
+    <string name="league_serie_a">Serie A</string>
+    <string name="league_bundesliga">Bundesliga</string>
+    <string name="league_ligue_1">Ligue 1</string>
+
+    <!-- Legal screen -->
+    <string name="legal_section_data">Proveedor de Datos</string>
+    <string name="legal_section_libraries">Bibliotecas de Código Abierto</string>
+
+    <string name="legal_api_name">API-Football</string>
+    <string name="legal_api_version">v3</string>
+    <string name="legal_api_author">API-Sports</string>
+    <string name="legal_api_license">Licencia API-Sports</string>
+    <string name="legal_api_desc">Proporciona marcadores en vivo, fixtures, clasificaciones, estadísticas y alineaciones de fútbol. Todos los datos de partidos en esta app son proporcionados por API-Football de API-Sports.</string>
+    <string name="legal_api_url_label">Ver Términos</string>
+    <string name="legal_api_url">https://www.api-football.com</string>
+
+    <string name="legal_picasso_name">Picasso</string>
+    <string name="legal_picasso_version">2.8</string>
+    <string name="legal_picasso_author">Square, Inc.</string>
+    <string name="legal_picasso_license">Apache License 2.0</string>
+    <string name="legal_picasso_desc">Biblioteca de descarga y caché de imágenes para Android, utilizada para cargar escudos de equipos y logos de ligas en toda la app.</string>
+    <string name="legal_picasso_url_label">Ver Licencia</string>
+    <string name="legal_picasso_url">https://github.com/square/picasso/blob/master/LICENSE</string>
+
+    <string name="legal_rcpb_name">RoundCornerProgressBar</string>
+    <string name="legal_rcpb_version">2.0.3</string>
+    <string name="legal_rcpb_author">Akexorcist</string>
+    <string name="legal_rcpb_license">Apache License 2.0</string>
+    <string name="legal_rcpb_desc">Biblioteca de barra de progreso con esquinas redondeadas para Android, utilizada para mostrar estadísticas de partidos en la pantalla de detalles del partido.</string>
+    <string name="legal_rcpb_url_label">Ver Licencia</string>
+    <string name="legal_rcpb_url">https://github.com/akexorcist/RoundCornerProgressBar/blob/master/LICENSE</string>
+
+    <!-- Info screen -->
+    <string name="info_version">Versión</string>
+    <string name="info_build">Compilación</string>
+    <string name="info_build_date">Fecha de Compilación</string>
+    <string name="info_package">Paquete</string>
+    <string name="info_copyright">© 2026 Nicolas Nita. Todos los derechos reservados.</string>
+    <string name="info_tagline">Marcadores de fútbol en vivo, donde estés.</string>
+
+    <!-- Stat labels -->
+    <string name="stat_shots_on_goal">Tiros a Puerta</string>
+    <string name="stat_shots_off_goal">Tiros Desviados</string>
+    <string name="stat_total_shots">Tiros Totales</string>
+    <string name="stat_blocked_shots">Tiros Bloqueados</string>
+    <string name="stat_corners">Córners</string>
+    <string name="stat_fouls">Faltas</string>
+    <string name="stat_yellow_cards">Tarjetas Amarillas</string>
+    <string name="stat_red_cards">Tarjetas Rojas</string>
+    <string name="stat_offsides">Fueras de Juego</string>
+    <string name="stat_possession">Posesión del Balón</string>
+    <string name="stat_passes_pct">Pases %</string>
+    <string name="filter_more">Más…</string>
+    <string name="more_leagues_title">Más Ligas</string>
+    <string name="search_leagues_hint">Buscar ligas o países</string>
+    <string name="no_leagues_found">No se encontraron ligas</string>
+    <string name="filter_dialog_title">Filtrar Partidos</string>
+    <string name="filter_mode_all">Todos los Partidos</string>
+    <string name="filter_mode_live">Solo en Vivo</string>
+    <string name="filter_mode_league">Liga Favorita</string>
+    <string name="filter_matches_desc">Filtrar partidos</string>
+    <string name="filter_and_sort">Filtrar y Ordenar</string>
+    <string name="filter_sort_by">Ordenar Por</string>
+    <string name="filter_sort_time_asc">Hora (Más Temprano Primero)</string>
+    <string name="filter_sort_time_desc">Hora (Más Tarde Primero)</string>
+    <string name="filter_sort_alpha">A – Z</string>
+    <string name="filter_by_country">Filtrar por País</string>
+    <string name="filter_by_league">Filtrar por Liga</string>
+    <string name="filter_clear">Limpiar</string>
+    <string name="filter_clear_all">Limpiar Todo</string>
+    <string name="filter_done">Listo</string>
+    <string name="filter_league_override_note">Una liga está seleccionada arriba — solo el ordenamiento está disponible.</string>
+    <string name="filter_active_count">%1$d activo</string>
+    <string name="search_countries_hint">Buscar países</string>
+    <string name="search_filter_leagues_hint">Buscar ligas</string>
+    <string name="no_results_found">No se encontraron resultados</string>
+</resources>
