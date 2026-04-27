@@ -64,6 +64,8 @@ private data class NavItem(
 
 @Composable
 fun KickinApp() {
+    val homeViewModel: HomeViewModel = viewModel()
+    val settingsViewModel: SettingsViewModel = viewModel()
     val navController = rememberNavController()
     val navItems = listOf(
         NavItem(Screen.Home, R.string.nav_home) {
@@ -122,7 +124,6 @@ fun KickinApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Home.route) {
-                val homeViewModel: HomeViewModel = viewModel()
                 val leagues by homeViewModel.leagues.collectAsState()
                 val selectedLeague by homeViewModel.selectedLeague.collectAsState()
                 val matchMode by homeViewModel.matchMode.collectAsState()
@@ -139,6 +140,7 @@ fun KickinApp() {
                 val sortOrder by homeViewModel.sortOrder.collectAsState()
                 val availableCountries by homeViewModel.availableCountries.collectAsState()
                 val availableFilterLeagues by homeViewModel.availableFilterLeagues.collectAsState()
+                val liveInterval by settingsViewModel.liveInterval.collectAsState()
                 HomeScreen(
                     leagues = leagues,
                     selectedLeague = selectedLeague,
@@ -164,25 +166,26 @@ fun KickinApp() {
                     onSortOrderChanged = homeViewModel::setSortOrder,
                     timeFormat = timeFormat,
                     isLoading = isLoading,
-                    apiError = apiError
+                    apiError = apiError,
+                    liveInterval = liveInterval,
+                    onRefresh = homeViewModel::refresh
                 )
             }
             composable(Screen.Standings.route) {
                 StandingsScreen()
             }
             composable(Screen.Settings.route) {
-                val settingsViewModel: SettingsViewModel = viewModel()
                 val selectedLeagueId by settingsViewModel.selectedLeagueId.collectAsState()
-                val displayMode by settingsViewModel.displayMode.collectAsState()
+                val liveIntervalSettings by settingsViewModel.liveInterval.collectAsState()
                 val timeFormat by settingsViewModel.timeFormat.collectAsState()
                 val dataSource by settingsViewModel.dataSource.collectAsState()
                 SettingsScreen(
                     selectedLeagueId = selectedLeagueId,
-                    displayMode = displayMode,
+                    liveInterval = liveIntervalSettings,
                     timeFormat = timeFormat,
                     dataSource = dataSource,
                     onLeagueSelected = settingsViewModel::selectLeague,
-                    onDisplayModeSelected = settingsViewModel::selectDisplayMode,
+                    onLiveIntervalChanged = settingsViewModel::setLiveInterval,
                     onTimeFormatChanged = settingsViewModel::setTimeFormat,
                     onDataSourceChanged = settingsViewModel::setDataSource
                 )

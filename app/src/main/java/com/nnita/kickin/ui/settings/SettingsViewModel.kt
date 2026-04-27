@@ -16,10 +16,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     )
     val selectedLeagueId: StateFlow<String> = _selectedLeagueId.asStateFlow()
 
-    private val _displayMode = MutableStateFlow(
-        prefs.getString(KEY_DISPLAY_MODE, "all") ?: "all"
+    private val _liveInterval = MutableStateFlow(
+        prefs.getString(KEY_LIVE_INTERVAL, "manual") ?: "manual"
     )
-    val displayMode: StateFlow<String> = _displayMode.asStateFlow()
+    val liveInterval: StateFlow<String> = _liveInterval.asStateFlow()
 
     private val _timeFormat = MutableStateFlow(
         prefs.getString(KEY_TIME_FORMAT, "24h") ?: "24h"
@@ -36,9 +36,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         prefs.edit().putString(KEY_LEAGUE, leagueId).apply()
     }
 
-    fun selectDisplayMode(mode: String) {
-        _displayMode.value = mode
-        prefs.edit().putString(KEY_DISPLAY_MODE, mode).apply()
+    fun setLiveInterval(interval: String) {
+        _liveInterval.value = interval
+        prefs.edit().putString(KEY_LIVE_INTERVAL, interval).apply()
     }
 
     fun setTimeFormat(format: String) {

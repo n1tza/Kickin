@@ -51,11 +51,11 @@ private val H_PAD = 16.dp
 @Composable
 fun SettingsScreen(
     selectedLeagueId: String,
-    displayMode: String,
+    liveInterval: String,
     timeFormat: String,
     dataSource: String,
     onLeagueSelected: (String) -> Unit,
-    onDisplayModeSelected: (String) -> Unit,
+    onLiveIntervalChanged: (String) -> Unit,
     onTimeFormatChanged: (String) -> Unit,
     onDataSourceChanged: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -97,12 +97,12 @@ fun SettingsScreen(
 
             SettingsDivider()
 
-            // ── Display Mode ──────────────────────────────────────────────────
-            SettingsSectionHeader(stringResource(R.string.settings_display_mode_label))
+            // ── Live Update Interval ──────────────────────────────────────────
+            SettingsSectionHeader(stringResource(R.string.settings_live_update_label))
             Spacer(modifier = Modifier.height(4.dp))
-            DisplayModeSelector(
-                displayMode = displayMode,
-                onDisplayModeSelected = onDisplayModeSelected
+            LiveIntervalSelector(
+                liveInterval = liveInterval,
+                onLiveIntervalChanged = onLiveIntervalChanged
             )
 
             SettingsDivider()
@@ -225,28 +225,31 @@ private fun LeaguePicker(
 }
 
 @Composable
-private fun DisplayModeSelector(
-    displayMode: String,
-    onDisplayModeSelected: (String) -> Unit,
+private fun LiveIntervalSelector(
+    liveInterval: String,
+    onLiveIntervalChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val options = listOf(
-        "live" to stringResource(R.string.settings_display_live),
-        "all" to stringResource(R.string.settings_display_all),
-        "league" to stringResource(R.string.settings_display_league)
+        "manual" to stringResource(R.string.settings_live_interval_manual),
+        "15"     to stringResource(R.string.settings_live_interval_15s),
+        "30"     to stringResource(R.string.settings_live_interval_30s),
+        "60"     to stringResource(R.string.settings_live_interval_1m),
+        "300"    to stringResource(R.string.settings_live_interval_5m),
+        "600"    to stringResource(R.string.settings_live_interval_10m)
     )
     Column(modifier = modifier) {
         options.forEach { (value, label) ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onDisplayModeSelected(value) }
+                    .clickable { onLiveIntervalChanged(value) }
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
-                    selected = displayMode == value,
-                    onClick = { onDisplayModeSelected(value) },
+                    selected = liveInterval == value,
+                    onClick = { onLiveIntervalChanged(value) },
                     colors = RadioButtonDefaults.colors(
                         selectedColor = MaterialTheme.colorScheme.primary
                     )
@@ -256,7 +259,7 @@ private fun DisplayModeSelector(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = if (displayMode == value) FontWeight.SemiBold
+                    fontWeight = if (liveInterval == value) FontWeight.SemiBold
                                  else FontWeight.Normal
                 )
             }
@@ -328,11 +331,11 @@ fun PreviewSettingsScreen() {
     KickinTheme {
         SettingsScreen(
             selectedLeagueId = "39",
-            displayMode = "all",
+            liveInterval = "manual",
             timeFormat = "24h",
             dataSource = "file",
             onLeagueSelected = {},
-            onDisplayModeSelected = {},
+            onLiveIntervalChanged = {},
             onTimeFormatChanged = {},
             onDataSourceChanged = {}
         )
@@ -345,11 +348,11 @@ fun PreviewSettingsScreenDark() {
     KickinTheme {
         SettingsScreen(
             selectedLeagueId = "140",
-            displayMode = "live",
+            liveInterval = "60",
             timeFormat = "12h",
             dataSource = "api",
             onLeagueSelected = {},
-            onDisplayModeSelected = {},
+            onLiveIntervalChanged = {},
             onTimeFormatChanged = {},
             onDataSourceChanged = {}
         )
@@ -371,11 +374,11 @@ fun PreviewLeaguePicker() {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewDisplayModeSelector() {
+fun PreviewLiveIntervalSelector() {
     KickinTheme {
-        DisplayModeSelector(
-            displayMode = "all",
-            onDisplayModeSelected = {},
+        LiveIntervalSelector(
+            liveInterval = "manual",
+            onLiveIntervalChanged = {},
             modifier = Modifier.padding(H_PAD)
         )
     }
@@ -383,11 +386,11 @@ fun PreviewDisplayModeSelector() {
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
-fun PreviewDisplayModeSelectorDark() {
+fun PreviewLiveIntervalSelectorDark() {
     KickinTheme {
-        DisplayModeSelector(
-            displayMode = "live",
-            onDisplayModeSelected = {},
+        LiveIntervalSelector(
+            liveInterval = "60",
+            onLiveIntervalChanged = {},
             modifier = Modifier.padding(H_PAD)
         )
     }

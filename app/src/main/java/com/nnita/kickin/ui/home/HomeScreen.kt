@@ -99,6 +99,10 @@ import com.nnita.kickin.ui.theme.KickinTheme
 import com.nnita.kickin.ui.theme.LiveRed
 import com.nnita.kickin.ui.theme.NeonGreen
 import com.nnita.kickin.ui.theme.White
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -135,8 +139,21 @@ fun HomeScreen(
     timeFormat: String = "24h",
     isLoading: Boolean = false,
     apiError: String? = null,
+    liveInterval: String = "manual",
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(liveInterval, lifecycleOwner) {
+        val delayMs = liveInterval.toLongOrNull()?.times(1_000L) ?: return@LaunchedEffect
+        lifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            while (true) {
+                delay(delayMs)
+                onRefresh()
+            }
+        }
+    }
+
     var showDatePicker by remember { mutableStateOf(false) }
     var showMoreSheet by remember { mutableStateOf(false) }
     var showFilterSheet by remember { mutableStateOf(false) }

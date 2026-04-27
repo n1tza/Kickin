@@ -56,6 +56,14 @@
     <string name="content_desc_back">Back</string>
 
     <!-- Settings -->
+    <string name="settings_live_update_label">Live Update Interval</string>
+    <string name="settings_live_interval_manual">On Refresh</string>
+    <string name="settings_live_interval_15s">Every 15 seconds</string>
+    <string name="settings_live_interval_30s">Every 30 seconds</string>
+    <string name="settings_live_interval_1m">Every minute</string>
+    <string name="settings_live_interval_5m">Every 5 minutes</string>
+    <string name="settings_live_interval_10m">Every 10 minutes</string>
+
     <string name="settings_league_label">Favorite League</string>
     <string name="settings_league_none">None</string>
     <string name="settings_display_mode_label">Display Mode</string>

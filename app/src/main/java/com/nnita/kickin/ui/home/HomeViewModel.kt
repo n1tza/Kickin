@@ -16,7 +16,6 @@ import com.nnita.kickin.model.isLive
 import com.nnita.kickin.model.toFixture
 import com.nnita.kickin.network.RetrofitClient
 import com.nnita.kickin.ui.settings.KEY_DATA_SOURCE
-import com.nnita.kickin.ui.settings.KEY_DISPLAY_MODE
 import com.nnita.kickin.ui.settings.KEY_LEAGUE
 import com.nnita.kickin.ui.settings.KEY_TIME_FORMAT
 import com.nnita.kickin.ui.settings.PREF_FILE
@@ -101,7 +100,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         get() = leagueIdToName[prefs.getString(KEY_LEAGUE, "39")] ?: "All"
 
     private val _favLeagueName = MutableStateFlow(favName)
-    private val _displayMode = MutableStateFlow(prefs.getString(KEY_DISPLAY_MODE, "all") ?: "all")
+    private val _displayMode = MutableStateFlow("all")
     private val _timeFormat = MutableStateFlow(prefs.getString(KEY_TIME_FORMAT, "24h") ?: "24h")
     private val _selectedLeague = MutableStateFlow(favName)
     private val _matchMode = MutableStateFlow(MatchMode.TODAY)
@@ -111,7 +110,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val matchMode: StateFlow<MatchMode> = _matchMode.asStateFlow()
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
     val timeFormat: StateFlow<String> = _timeFormat.asStateFlow()
-    val displayMode: StateFlow<String> = _displayMode.asStateFlow()
 
     // Fixed chip list — always the same 5 leagues regardless of what's loaded
     val leagues: StateFlow<List<String>> = MutableStateFlow(listOf("All") + mainLeagueNames)
@@ -207,11 +205,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 _favLeagueName.value = name
                 _selectedLeague.value = name
             }
-            KEY_DISPLAY_MODE -> {
-                val dm = prefs.getString(KEY_DISPLAY_MODE, "all") ?: "all"
-                _displayMode.value = dm
-                if (dm == "league") _selectedLeague.value = _favLeagueName.value
-            }
             KEY_TIME_FORMAT -> {
                 _timeFormat.value = prefs.getString(KEY_TIME_FORMAT, "24h") ?: "24h"
             }
@@ -226,10 +219,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectLeague(league: String) { _selectedLeague.value = league }
 
-    fun selectDisplayMode(mode: String) {
-        prefs.edit().putString(KEY_DISPLAY_MODE, mode).apply()
-        // prefsListener picks up KEY_DISPLAY_MODE and updates _displayMode
-    }
+    fun refresh() = loadFixtures()
 
     fun selectMode(mode: MatchMode) {
         _matchMode.value = mode

@@ -56,6 +56,14 @@
     <string name="content_desc_back">Atrás</string>
 
     <!-- Settings -->
+    <string name="settings_live_update_label">Intervalo de Actualización</string>
+    <string name="settings_live_interval_manual">Al recargar</string>
+    <string name="settings_live_interval_15s">Cada 15 segundos</string>
+    <string name="settings_live_interval_30s">Cada 30 segundos</string>
+    <string name="settings_live_interval_1m">Cada minuto</string>
+    <string name="settings_live_interval_5m">Cada 5 minutos</string>
+    <string name="settings_live_interval_10m">Cada 10 minutos</string>
+
     <string name="settings_league_label">Liga Favorita</string>
     <string name="settings_league_none">Ninguna</string>
     <string name="settings_display_mode_label">Modo de Visualización</string>
