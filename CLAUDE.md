@@ -369,11 +369,16 @@ Load prefs in each screen's `ViewModel` via `init` block and expose as `StateFlo
 ---
 
 ## Dialog
-- **Type**: Match filter dialog (AlertDialog with 3 options)
-- **Trigger**: Floating action button or menu item on Home screen
-- **Options**: "Today" / "Tomorrow" / "This Weekend"
-- **Effect**: Updates the date parameter used for fixture fetch and refreshes Home list
-- List in assessment package file.
+- **Type**: `FixtureFilterDialog` — `AlertDialog` on the Home screen
+- **Trigger**: "Filter & Sort" button in the Matches section header (below live matches)
+- **Sections**:
+  - **Sort By** (always visible): Time Ascending / Time Descending / A–Z radio buttons
+  - **Filter by Country** (expandable, with live search): multi-select checkboxes; hidden when a league chip is active
+  - **Filter by League** (expandable, with live search): multi-select checkboxes; hidden when a league chip is active
+- **Chip override**: when a main league chip (PL, La Liga, etc.) is selected, filter sections are hidden and a note explains only sorting is available
+- **Active indicator**: button badge shows count of active country + league filters
+- **Clear controls**: per-section Clear buttons + global Clear All in the dialog title row
+- Filter state lives in `HomeViewModel` (`selectedCountries`, `selectedLeagueFilterIds`, `sortOrder`); resets on mode switch
 
 ---
 
@@ -401,7 +406,7 @@ Both tests live in `app/src/androidTest/`.
 
 ## Libraries
 1. **Picasso** (`com.squareup.picasso:picasso:2.8`) — team crest and league logo image loading
-2. **MPAndroidChart** (`com.github.PhilJay:MPAndroidChart:v3.1.0`) — horizontal bar chart for match statistics (possession, shots, etc.)
+2. **RoundCornerProgressBar** (`com.akexorcist:RoundCornerProgressBar:2.0.3`) — animated round-corner progress bars for match statistics (possession, shots, etc.) in Match Detail
 
 Both attributed in Legal screen.
 
@@ -453,8 +458,8 @@ Both attributed in Legal screen.
 - Keep all sample JSON in `assets/` (easier to read as InputStream than `res/raw/`)
 - Use `viewModelScope.launch` for coroutines in ViewModels
 - Screens are stateless composables — all state lives in ViewModels, passed down as parameters
-- Picasso requires an `AndroidView` wrapper inside Compose — use a helper composable `PicassoImage(url, modifier)` so it's reusable and previewable (preview with placeholder drawable)
-- MPAndroidChart requires `AndroidView` — wrap in a `MatchStatChart(stats, modifier)` composable with its own preview
+- Picasso requires an `AndroidView` wrapper inside Compose — use the existing `PicassoImage(url, teamName, size)` composable in `ui/components/PicassoImage.kt`
+- RoundCornerProgressBar requires `AndroidView` — already wrapped in match detail stat rows via `StatRow` composable
 - Never commit API key to git — use `local.properties` and `BuildConfig` field
 
 ---
@@ -490,11 +495,11 @@ Both attributed in Legal screen.
 - [x] State correctly restored on relaunch
 
 ### 6 Dialog [6 pts]
-- [x] **DisplayModeFilterDialog** — `AlertDialog` on Home screen, triggered by filter icon (⊟) in the TopAppBar. Three radio options: All Matches / Live Only / Favorite League. Immediately updates display mode and dismisses. Icon tints primary color when a non-default filter is active.
+- [x] **FixtureFilterDialog** — `AlertDialog` on Home screen, triggered by "Filter & Sort" button below the live matches section. Three sections: Sort By (radio), Filter by Country (expandable multi-select with search), Filter by League (expandable multi-select with search). When a league chip is active, only Sort is available. Active filter count badge shown on trigger button.
 
 ### 7 Tests [10 pts]
-- [ ] **Test 1 (sample data reader) NOT implemented** — `ExampleInstrumentedTest.kt` only checks package name. Must add a test that opens `sample_fixtures.json` from assets, parses it, and logs each fixture to logcat with tag `SAMPLE_TEST`.
-- [ ] **Test 2 (live API) NOT implemented** — Must add a test that calls `GET /fixtures?date=TODAY` with the real API key, asserts HTTP 200, and logs the raw JSON with tag `API_TEST`.
+- [x] **Test 1 (sample data reader)** — `SampleDataTest.kt`: opens `sample_fixtures.json` from assets, parses into `List<FixtureResponse>` with Gson, asserts non-empty, logs each fixture (`home score – away score [status]`) with tag `SAMPLE_TEST`.
+- [x] **Test 2 (live API)** — `LiveApiTest.kt`: calls `GET /fixtures?date=TODAY&timezone=America/New_York` via OkHttp with real API key from `BuildConfig`, asserts HTTP 200, logs raw JSON response with tag `API_TEST`.
 
 ### 8 Switch to API [10 pts]
 - [x] Settings 4th toggle switches between file and live API
@@ -502,23 +507,26 @@ Both attributed in Legal screen.
 - [x] Same `sample_fixtures.json` file used by both the test and the file mode
 
 ### 9 Libraries [10 pts]
-- [x] **Picasso** — team/league crests on Home, Standings, Match Detail, More sheet
-- [x] **RoundCornerProgressBar** (`com.akexorcist:round-corner-progress-bar`) — stat bars in Match Detail
-- [x] Both attributed in Legal screen
+- [x] **Picasso** (`com.squareup.picasso:picasso:2.8`) — team/league crests on Home, Standings, Match Detail, More sheet
+- [x] **RoundCornerProgressBar** (`com.akexorcist:RoundCornerProgressBar:2.0.3`) — animated stat bars in Match Detail
+- [x] Both attributed in Legal screen (`ui/legal/LegalScreen.kt`)
 
 ### 10 Custom Feature [10 pts]
 - [ ] **Not yet implemented / branched.** CLAUDE.md spec: form-based match predictor on Match Detail using last-5 results from `/fixtures?team=ID&last=5`, displayed as win-probability bars. Must be on branch `feature/match-predictor` off final `main`.
 
 ### 11 Git [10 pts]
-- [x] 20 real commits on `main` (well above the 12 minimum)
+- [x] 20+ real commits on `main` (well above the 12 minimum)
 - [ ] **Custom feature branch** `feature/match-predictor` not yet created
 
-12 Legal page
+### 12 Legal Page [done]
+- [x] API-Football attribution + link to terms (`https://www.api-football.com`)
+- [x] Picasso attribution + Apache 2.0 license link
+- [x] RoundCornerProgressBar attribution + Apache 2.0 license link
+- [x] Copyright footer
+- [x] Scrollable layout (`LegalScreen.kt` with `Scaffold` + `TopAppBar`)
 
 ---
 
 ### Summary — What To Do Before April 29
 1. Create `res/values-es/strings.xml` with Spanish translations of all strings
-2. Write the two instrumented tests in `androidTest/`
-3. Implement + branch the custom feature (`feature/match-predictor`)
-4. Implement legal page
+2. Implement + branch the custom feature (`feature/match-predictor`)
