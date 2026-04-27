@@ -76,6 +76,34 @@
     <string name="league_bundesliga">Bundesliga</string>
     <string name="league_ligue_1">Ligue 1</string>
 
+    <!-- Legal screen -->
+    <string name="legal_section_data">Data Provider</string>
+    <string name="legal_section_libraries">Open Source Libraries</string>
+
+    <string name="legal_api_name">API-Football</string>
+    <string name="legal_api_version">v3</string>
+    <string name="legal_api_author">API-Sports</string>
+    <string name="legal_api_license">API-Sports License</string>
+    <string name="legal_api_desc">Provides live football scores, fixtures, standings, statistics, and lineups. All match data in this app is powered by API-Football by API-Sports.</string>
+    <string name="legal_api_url_label">View Terms</string>
+    <string name="legal_api_url">https://www.api-football.com</string>
+
+    <string name="legal_picasso_name">Picasso</string>
+    <string name="legal_picasso_version">2.8</string>
+    <string name="legal_picasso_author">Square, Inc.</string>
+    <string name="legal_picasso_license">Apache License 2.0</string>
+    <string name="legal_picasso_desc">Image downloading and caching library for Android, used to load team crests and league logos throughout the app.</string>
+    <string name="legal_picasso_url_label">View License</string>
+    <string name="legal_picasso_url">https://github.com/square/picasso/blob/master/LICENSE</string>
+
+    <string name="legal_rcpb_name">RoundCornerProgressBar</string>
+    <string name="legal_rcpb_version">2.0.3</string>
+    <string name="legal_rcpb_author">Akexorcist</string>
+    <string name="legal_rcpb_license">Apache License 2.0</string>
+    <string name="legal_rcpb_desc">Round corner progress bar library for Android, used to display match statistics in the match detail screen.</string>
+    <string name="legal_rcpb_url_label">View License</string>
+    <string name="legal_rcpb_url">https://github.com/akexorcist/RoundCornerProgressBar/blob/master/LICENSE</string>
+
     <!-- Info screen -->
     <string name="info_version">Version</string>
     <string name="info_build">Build</string>
