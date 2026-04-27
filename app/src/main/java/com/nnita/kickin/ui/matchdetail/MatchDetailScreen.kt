@@ -463,7 +463,86 @@ private fun PredictorTeamRow(
     }
 }
 
+// ── Preview data ─────────────────────────────────────────────────────────────
+
+private val previewHomeStats = TeamStatistics(
+    teamName = "Arsenal",
+    shotsOnGoal = 7, shotsOffGoal = 4, totalShots = 13, blockedShots = 2,
+    ballPossession = "52%", cornerKicks = 5, fouls = 11,
+    yellowCards = 1, redCards = 0, offsides = 2, passesPercentage = "84%"
+)
+private val previewAwayStats = TeamStatistics(
+    teamName = "Chelsea",
+    shotsOnGoal = 5, shotsOffGoal = 6, totalShots = 14, blockedShots = 3,
+    ballPossession = "48%", cornerKicks = 3, fouls = 9,
+    yellowCards = 2, redCards = 0, offsides = 1, passesPercentage = "81%"
+)
+
 // ── Previews ─────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewTeamDisplay() {
+    KickinTheme {
+        TeamDisplay(name = "Manchester City", logoUrl = "")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewScoreDisplayMatch() {
+    KickinTheme {
+        ScoreDisplay(homeScore = 2, awayScore = 1)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStatRow() {
+    KickinTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            StatRow(label = "Shots on Goal", homeValue = 7, awayValue = 5)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewStatsSection() {
+    KickinTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            StatsSection(homeStats = previewHomeStats, awayStats = previewAwayStats)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPredictorTeamRow() {
+    KickinTheme {
+        PredictorTeamRow(
+            teamName = "Arsenal",
+            pct = 0.62f,
+            animPct = 0.62f,
+            barColor = Color(0xFF4CAF50).toArgb(),
+            trackColor = Color(0xFFE0E0E0).toArgb(),
+            reverse = false,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPredictorBars() {
+    KickinTheme {
+        PredictorBars(
+            fixture = previewFixtureLive,
+            state = PredictionState.Ready(homeWinPct = 0.62f, awayWinPct = 0.38f),
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

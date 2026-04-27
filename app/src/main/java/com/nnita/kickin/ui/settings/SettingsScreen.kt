@@ -424,3 +424,23 @@ fun PreviewSettingsSwitchRowDeveloper() {
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSettingsSectionHeader() {
+    KickinTheme {
+        Column(modifier = Modifier.padding(horizontal = H_PAD)) {
+            SettingsSectionHeader(text = "Favorite League")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSettingsDivider() {
+    KickinTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            SettingsDivider()
+        }
+    }
+}
