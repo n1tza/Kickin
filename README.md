@@ -4,9 +4,13 @@ A live football (soccer) score tracker for Android, built with Kotlin and Jetpac
 
 Built for CSC 214 (Mobile App Development) at the University of Rochester.
 
+<p align="center">
+  <img src="screenshots/home.png" alt="Kickin home screen showing live and today's matches" width="300">
+</p>
+
 ## Features
 
-- **Home** — today's live and scheduled matches with team crests, scores, and live minute / FT / NS status. Quick league chips plus a **Filter & Sort** dialog (sort by time or A–Z, multi-select country and league filters with live search).
+- **Home** — today's live and scheduled matches (plus a Past view) with team crests, scores, and live minute / FT / NS status. Quick league chips plus a **Filter & Sort** dialog (sort by time or A–Z, multi-select country and league filters with live search).
 - **Standings** — league table (position, crest, played, W/D/L, goal difference, points) for the Premier League, La Liga, Serie A, Bundesliga, and Ligue 1.
 - **Match Detail** — fixture header plus match statistics (possession, shots, corners, cards, …) shown as animated progress bars.
 - **Match Predictor** *(branch `feature/match-predictor`)* — estimates win probability from each team's last 5 results (W=3 / D=1 / L=0, plus a home-advantage bonus).
